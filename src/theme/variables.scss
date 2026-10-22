@@ -1,0 +1,69 @@
+/*
+ * Identidad de API Explorer — catálogo de anime.
+ * Tema oscuro "medianoche" + coral sakura: nada del azul/morado de plantilla.
+ * Se declaran los 5 tonos de cada color custom (Ionic falla en runtime si falta uno).
+ */
+:root {
+  --ion-font-family: 'Inter', 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+
+  --ion-color-primary: #ff5a76;
+  --ion-color-primary-rgb: 255, 90, 118;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #e04f68;
+  --ion-color-primary-tint: #ff6b84;
+
+  --ion-color-secondary: #35d0ba;
+  --ion-color-secondary-rgb: 53, 208, 186;
+  --ion-color-secondary-contrast: #06231f;
+  --ion-color-secondary-contrast-rgb: 6, 35, 31;
+  --ion-color-secondary-shade: #2eb7a4;
+  --ion-color-secondary-tint: #49d5c1;
+
+  --ion-color-tertiary: #ffc857;
+  --ion-color-tertiary-rgb: 255, 200, 87;
+  --ion-color-tertiary-contrast: #2a1f00;
+  --ion-color-tertiary-contrast-rgb: 42, 31, 0;
+  --ion-color-tertiary-shade: #e0b04d;
+  --ion-color-tertiary-tint: #ffce68;
+
+  --ion-color-success: #2fbf71;
+  --ion-color-success-rgb: 47, 191, 113;
+  --ion-color-success-contrast: #04180d;
+  --ion-color-success-contrast-rgb: 4, 24, 13;
+  --ion-color-success-shade: #29a863;
+  --ion-color-success-tint: #44c57f;
+
+  --ion-color-warning: #f5a623;
+  --ion-color-warning-rgb: 245, 166, 35;
+  --ion-color-warning-contrast: #2a1c00;
+  --ion-color-warning-contrast-rgb: 42, 28, 0;
+  --ion-color-warning-shade: #d8921f;
+  --ion-color-warning-tint: #f6af39;
+
+  --ion-color-danger: #ef4d5a;
+  --ion-color-danger-rgb: 239, 77, 90;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #d2444f;
+  --ion-color-danger-tint: #f15f6b;
+
+  /* Fondo y superficies de la app */
+  --app-fondo: #0d0f16;
+  --app-superficie: #171a24;
+  --app-superficie-2: #1f2430;
+  --app-borde: rgb(255 255 255 / 0.07);
+  --app-sombra: 0 10px 24px rgb(0 0 0 / 0.35);
+  --app-texto-suave: #9aa3b5;
+  --app-estrella: #ffc857;
+
+  --ion-background-color: #0d0f16;
+  --ion-background-color-rgb: 13, 15, 22;
+  --ion-text-color: #f2f4f8;
+  --ion-text-color-rgb: 242, 244, 248;
+  --ion-card-background: #171a24;
+  --ion-item-background: #171a24;
+  --ion-toolbar-background: #0d0f16;
+  --ion-tab-bar-background: #171a24;
+  --ion-border-color: rgb(255 255 255 / 0.08);
+}

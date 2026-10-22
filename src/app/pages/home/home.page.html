@@ -1,0 +1,87 @@
+<ion-header class="cabecera">
+  <ion-toolbar>
+    <div class="marca">
+      <span class="pulso" aria-hidden="true"></span>
+      <ion-title>API Explorer</ion-title>
+    </div>
+    <span slot="end" class="fuente">Kitsu</span>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="fondo">
+  <section class="intro">
+    <p class="eyebrow">Catálogo JSON:API</p>
+    <h2 class="lema">Datos reales,<br /><em>scroll infinito</em>.</h2>
+    <p class="cifras">
+      @if (total() > 0) {
+        {{ totalTexto() }} títulos · cargados {{ items().length }}
+      } @else {
+        Conectando con Kitsu…
+      }
+    </p>
+  </section>
+
+  @switch (estado()) {
+    @case ('cargando') {
+      <div class="lista" aria-busy="true" aria-label="Cargando catálogo">
+        @for (fila of [1, 2, 3, 4, 5]; track fila) {
+          <div class="esqueleto">
+            <ion-skeleton-text [animated]="true" class="sk-portada"></ion-skeleton-text>
+            <div class="sk-texto">
+              <ion-skeleton-text [animated]="true" class="sk-linea"></ion-skeleton-text>
+              <ion-skeleton-text [animated]="true" class="sk-linea corta"></ion-skeleton-text>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @case ('error') {
+      <div class="panel" role="alert">
+        <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+        <h3>No pudimos conectar con Kitsu</h3>
+        <p>Revisa tu conexión y vuelve a intentarlo. El catálogo no se ha perdido.</p>
+        <ion-button class="reintentar" (click)="cargar()">Reintentar</ion-button>
+      </div>
+    }
+
+    @case ('vacio') {
+      <div class="panel">
+        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+        <h3>Sin resultados</h3>
+        <p>El catálogo llegó vacío. Intenta recargar la lista.</p>
+        <ion-button class="reintentar" (click)="cargar()">Reintentar</ion-button>
+      </div>
+    }
+
+    @default {
+      <div class="lista">
+        @for (anime of items(); track anime.id) {
+          <app-anime-card [anime]="anime" />
+        }
+      </div>
+
+      @if (error()) {
+        <div class="aviso" role="alert">
+          <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+          <p>No se pudo cargar más. Tu lista sigue aquí.</p>
+          <ion-button fill="outline" class="reintentar" (click)="cargar()">Reintentar</ion-button>
+        </div>
+      }
+
+      @if (!hasMore() && !error()) {
+        <p class="fin">
+          <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+          Has llegado al final · {{ items().length }} de {{ totalTexto() }} títulos
+        </p>
+      }
+    }
+  }
+
+  <ion-infinite-scroll threshold="140px" [disabled]="!hasMore()" (ionInfinite)="cargar()">
+    <ion-infinite-scroll-content
+      loadingSpinner="dots"
+      loadingText="Cargando más títulos…"
+    ></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

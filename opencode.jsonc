@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Skills del equipo: se importan desde la carpeta compartida SKILLS_INSTALADAS
+  // (cada subcarpeta con SKILL.md = 1 skill: deteccion-codigo-muerto, pruebas-backend-esfot,
+  //  pruebas-frontend-esfot, refactor-seguro)
+  "skills": [
+    "C:/Users/Asus Tuf/Documents/Proyecto/Pruebas/SKILLS_INSTALADAS"
+  ],
+  // Se cargan en TODAS las sesiones (MiMo y DeepSeek) para que ambas arranquen con el plan y el handoff
+  "instructions": ["PLAN.md", "HANDOFF.md"],
+  "experimental": {
+    // Permite que un subagente lance a su vez otro subagente (profundidad 2)
+    "subagent_depth": 2
+  }
+}

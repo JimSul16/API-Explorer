@@ -1,0 +1,7 @@
+{
+  "name": "apptmp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

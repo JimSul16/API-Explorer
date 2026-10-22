@@ -1,0 +1,108 @@
+:host {
+  display: block;
+}
+
+.tarjeta {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid var(--app-borde);
+  background: var(--app-superficie);
+  box-shadow: var(--app-sombra);
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.tarjeta:active {
+  transform: scale(0.985);
+  border-color: hsl(var(--matiz) 70% 60% / 0.5);
+}
+
+.portada {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 11px;
+  overflow: hidden;
+  background: hsl(var(--matiz) 38% 24%);
+  display: grid;
+  place-items: center;
+}
+
+.portada img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.monograma {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: hsl(var(--matiz) 80% 78%);
+}
+
+.nota {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1a1206;
+  background: var(--app-estrella);
+}
+
+.nota ion-icon {
+  font-size: 11px;
+}
+
+.info {
+  min-width: 0;
+}
+
+.titulo {
+  margin: 0 0 6px;
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 600;
+  color: var(--ion-text-color);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--app-texto-suave);
+}
+
+.tipo {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ion-color-primary);
+  background: rgb(var(--ion-color-primary-rgb) / 0.12);
+}
+
+.eps {
+  font-variant-numeric: tabular-nums;
+}
