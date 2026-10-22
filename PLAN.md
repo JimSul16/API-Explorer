@@ -207,7 +207,7 @@ SCAFFOLD: listo | pendiente
 |---|---|---|---|
 | Búsqueda con reinicio | R3 | 🟩 `deepseek-codigo` | `ion-searchbar` + reset de lista/paginación/ids |
 | Detalle + estados + favoritos | R4, R5, R6 | 🟩 `deepseek-codigo` | `:id`, loading/vacío/error con reintento, Preferences |
-| **APK por terminal** | Evidencia | 🟦 `mimo-infra` | Skill `ionic-app-setup` §5: `npm run build` → `npx cap sync android` → `cd android` → `.\gradlew.bat assembleDebug` → `android\app\build\outputs\apk\debug\app-debug.apk`. **Siempre por terminal**, no desde Android Studio. |
+| **APK por terminal** | Evidencia | 🟦 `mimo-infra` | Skill `ionic-app-setup` §5: `npm run build` → `npx cap sync android` → `cd android` → `.\gradlew.bat assembleDebug` → `android\app\build\outputs\apk\debug\app-debug.apk`. **Siempre por terminal**, no desde Android Studio. ✅ **Generado 22/10 20:36 (4.16 MB) sobre el estado R1+R2+R7** — se regenera tras R3–R6. |
 | Auditoría y limpieza final | — | 🟦 `mimo-infra` + `auditor-muerto` | Skills `deteccion-codigo-muerto` + `refactor-seguro` |
 | README final + GitHub | — | 🟦 `mimo-infra` | §10 Entregables |
 

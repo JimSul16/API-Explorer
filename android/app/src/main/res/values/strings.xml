@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">API Explorer</string>
+    <string name="title_activity_main">API Explorer</string>
+    <string name="package_name">com.esfot.apiexplorer</string>
+    <string name="custom_url_scheme">com.esfot.apiexplorer</string>
+</resources>

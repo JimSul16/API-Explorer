@@ -75,6 +75,9 @@ cd android
 # salida: android\app\build\outputs\apk\debug\app-debug.apk
 ```
 
+- ✅ **APK generado 22/10/2026 por terminal**: `android\app\build\outputs\apk\debug\app-debug.apk` — **4.16 MB** · BUILD SUCCESSFUL en 37 s (JDK 21 + Android SDK resuelto con `android/local.properties`; `npm run build` → `npx cap add android` → `.\gradlew.bat assembleDebug`).
+- Tras cada cambio de `src/` (R3–R6) se regenera con los mismos 3 pasos.
+
 ## Evidencias
 
 - **Build**: `npm run build` → 0 errores · `npx tsc --noEmit` → 0 · `npm run lint` → pass · `npm test -- --watch=false` → **9/9** (22/10/2026)

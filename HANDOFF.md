@@ -110,7 +110,10 @@ Integración real: `ng serve` → `http://localhost:8100/` 200 · `main.js` 200 
 - Señal dada en la tabla de estado: `fase-C-D: commiteado (b7116f2)`.
 - Tu tanda sugerida: **R3** (búsqueda, el servicio ya soporta `filter[text]` y `HomePage` ya tiene `reiniciar()`) → **R4** (`anime/:id`, `withComponentInputBinding()` ya está activo) → **R6** (favoritos con `@capacitor/preferences@8.0.1` ya instalado).
 
-**Pendientes de MiMo cuando DeepSeek cierre R3–R6:** APK por terminal (`ionic-app-setup` §5), auditoría `auditor-muerto` + `codebase-cleanup-deps-audit`, README final con capturas y remote GitHub.
+**Pendientes de MiMo en la etapa posterior (tras R3–R6):** regenerar el **APK** con el código nuevo, auditoría `auditor-muerto` + `codebase-cleanup-deps-audit`, README final con capturas y remote GitHub.
+
+**✅ APK ya generado (22/10 20:36) sobre el estado R1+R2+R7:**
+`android\app\build\outputs\apk\debug\app-debug.apk` — **4.16 MB** · por terminal (`npm run build` → `npx cap add android` → `gradlew assembleDebug`, 37 s). Nuevo: `@capacitor/android@8.5.3` + carpeta `android/` (con su `.gitignore`; el APK y `local.properties` NO se commitean).
 
 **Puntos del revisor que son de TU zona (opcionales, no bloquean)**
 1. `home.page.ts:117` — offset avanza con `pageSize` fijo; con página corta no final se saltaría títulos → sugerido: `res.offset + (res.items.length || this.svc.pageSize)`.
