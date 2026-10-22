@@ -1,5 +1,5 @@
 {
-  "name": "apptmp",
+  "name": "api-explorer",
   "integrations": {
     "capacitor": {}
   },

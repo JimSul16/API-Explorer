@@ -12,10 +12,12 @@
 | **Alcance del plan** | **R1 + R2 + estructura R7** (fases A–D + F); R3–R6 y APK = etapa posterior (PLAN.md §4.2) |
 | **Modo** | **Paralelo** (PLAN.md §3.4): 🟦 MiMo = raíz/config · 🟩 DeepSeek = `src/**` |
 | **SCAFFOLD** | ✅ **listo** (22/10 20:12) |
-| Fase actual | A ✅ · B ✅ · **C ✅ · D ✅ (DeepSeek, 22/10 20:22)** → siguiente: **F (MiMo)** |
-| Responsable | 🟦 MiMo (`mimo-infra`) para el cierre F · DeepSeek termina su turno |
-| **BUILD** | ✅ **verde** — `npm run build` 0 errores · `tsc --noEmit` 0 · `ng lint` 0 · `npm test` **9/9** (22/10 20:20) |
-| Commits | `1269883` fase-B (baseline, ya incluye parte de C) · siguiente commit: `fase-C-D` (ver Handoff #2) |
+| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · **F ✅ (MiMo, 22/10 20:32)** → **alcance del plan CERRADO** · etapa posterior: E/R3, G/R4+R6 (DeepSeek) |
+| Responsable | 🟩 DeepSeek (`deepseek-codigo`) para R3 → R4 → R6 · 🟦 MiMo en espera (etapa posterior: APK, auditoría, GitHub) |
+| **BUILD** | ✅ **verde, 0 warnings** — `npm run build` (5 s) · `tsc --noEmit` 0 · `ng lint` pass · `npm test` **9/9** (22/10 20:32, budget SCSS ya en 3 kB/6 kB) |
+| **Rúbrica (hoy)** | `revisor-rubrica` → **74/75** evaluables: R1 20/20 · R2 24/25 · R7 20/20 · estados 10/10 |
+| Commits | `1269883` fase-B · **`b7116f2` fase-C-D ✅ commiteado** · `26d550a` limpieza · siguiente: `fase-F` (MiMo) |
+| **🚦 Señal para DeepSeek** | ✅ **`fase-C-D: commiteado (b7116f2)`** → puede arrancar R3 (búsqueda) → R4 (detalle) → R6 (favoritos) |
 | Archivos tocados | raíz + configs (MiMo) · `src/**` completo (DeepSeek) |
 
 ---
@@ -87,6 +89,51 @@ Integración real: `ng serve` → `http://localhost:8100/` 200 · `main.js` 200 
 **Errores conocidos:** ninguno funcional. Solo el warning de presupuesto SCSS.
 
 **Nota de commits:** el baseline `1269883` de MiMo (`git add -A` a las 20:14) ya arrastró los archivos de la fase C que existían en ese momento; por eso C y D se cierran en **un commit atómico** (`fase-C-D`) en vez de dos, para no partir un estado que no compila de forma independiente.
+
+---
+
+## Handoff #3 — de MiMo a DeepSeek ✅ ALCANCE DEL PLAN CERRADO (F)
+
+**Fase completada:** **F — verificación + cierre del alcance R1 + R2 + R7** (A, B, C, D y F cerradas).
+
+**Qué hizo MiMo en este cierre (zona raíz/config)**
+- [x] Verificación completa: `npm run build` (0 errores, **0 warnings** tras el budget) · `npx tsc -p tsconfig.app.json --noEmit` → 0 · `npm run lint` → pass · `npm test -- --watch=false` → **9/9**.
+- [x] Commit del trabajo de DeepSeek: **`b7116f2` fase-C-D** (él lo preparó; MiMo verificó verde antes de darlo por bueno).
+- [x] Limpieza: eliminado `Blo.txt` (archivo vacío accidental) → `26d550a`.
+- [x] **Petición atendida**: `angular.json` → `anyComponentStyle` **3 kB warning / 6 kB error** (antes 2/4 kB). `home.page.scss` (2.53 kB) ya no avisa.
+- [x] `ionic.config.json` → `"name": "api-explorer"` (aún decía `apptmp`).
+- [x] `README.md` → sección de evidencias (comandos verdes, commits, 74/75) + aclaración de puertos (`npm start` :4200 · `ionic serve` :8100).
+- [x] `revisor-rubrica` → **74/75** evaluables: R1 20/20 · R2 24/25 · R7 20/20 · estados 10/10 · **sin bloqueantes**.
+- [x] §11 de PLAN.md actualizado; commit `fase-F`.
+
+**🚦 Arranque de la etapa posterior**
+- Señal dada en la tabla de estado: `fase-C-D: commiteado (b7116f2)`.
+- Tu tanda sugerida: **R3** (búsqueda, el servicio ya soporta `filter[text]` y `HomePage` ya tiene `reiniciar()`) → **R4** (`anime/:id`, `withComponentInputBinding()` ya está activo) → **R6** (favoritos con `@capacitor/preferences@8.0.1` ya instalado).
+
+**Pendientes de MiMo cuando DeepSeek cierre R3–R6:** APK por terminal (`ionic-app-setup` §5), auditoría `auditor-muerto` + `codebase-cleanup-deps-audit`, README final con capturas y remote GitHub.
+
+**Puntos del revisor que son de TU zona (opcionales, no bloquean)**
+1. `home.page.ts:117` — offset avanza con `pageSize` fijo; con página corta no final se saltaría títulos → sugerido: `res.offset + (res.items.length || this.svc.pageSize)`.
+2. `home.page.html:77` — `[disabled]` incluye `error()`: tras un fallo el scroll queda muerto salvo el botón inline.
+3. `home.page.html:37` — copy "El catálogo no se ha perdido" no aplica en la primera carga (error inicial).
+4. `anime.service.ts` — sin `catchError`: no distingue red caída de 4xx/5xx (útil para los mensajes de R5 cuando hagas el detalle).
+5. `home.page.spec.ts:7` — URL de Kitsu hardcodeada en el test en vez de `environment.apiUrl`.
+
+**BUILD**
+```
+npm run build                        → verde, 0 errores, 0 warnings (5 s)
+npx tsc -p tsconfig.app.json --noEmit → 0 errores
+npm run lint                         → All files pass linting
+npm test -- --watch=false            → 9/9 tests
+```
+
+**Errores conocidos:** ninguno. (Diferido para fase H: 5 vulnerabilidades de npm audit del starter, sin relación con el código de la app.)
+
+**NOTA IMPORTANTE SOBRE GIT (para las sesiones siguientes)**
+- Ya hay repo local (`main`, 4 commits: `1269883` · `b7116f2` · `26d550a` · `fase-F`). **NO `git init` otra vez.**
+- Antes de cada commit: `npm run build` en verde y actualizar §11 + este HANDOFF.
+- Nadie hace `git add` de cambios ajenos en curso: `git add -A` solo cuando tu fase está completa.
+- El **remote GitHub** lo configura MiMo en la fase H (no subir todavía).
 
 ---
 

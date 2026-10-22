@@ -38,7 +38,7 @@ Respuesta en **JSON:API**: `{ links, meta: { count }, data: [ { id, attributes }
 
 ```powershell
 npm install          # dependencias
-npm start            # ng serve → http://localhost:4200
+npm start            # ng serve → http://localhost:4200  (o: npx ionic serve → :8100)
 npm run build        # compila a www/ (debe dar 0 errores)
 ```
 
@@ -77,8 +77,11 @@ cd android
 
 ## Evidencias
 
-- Capturas/video del listado e infinite scrolling: _pendiente_
-- Repositorio: _pendiente_
+- **Build**: `npm run build` → 0 errores · `npx tsc --noEmit` → 0 · `npm run lint` → pass · `npm test -- --watch=false` → **9/9** (22/10/2026)
+- **Commits**: `1269883` fase-B (scaffold + estructura R7) · `b7116f2` fase-C-D (R1 + R2 + interfaz) · `26d550a` limpieza · `fase-F` (verificación + docs)
+- **Revisión de rúbrica** (subagente `revisor-rubrica`): **74/75** sobre lo evaluable hoy (R1 20/20 · R2 24/25 · R7 20/20 · estados 10/10)
+- **Captura/video** del listado + infinite scrolling: _pendiente de grabar en el navegador (etapa final)_
+- **Repositorio**: _pendiente de subir a GitHub (etapa final)_
 
 ## Dificultades encontradas
 
