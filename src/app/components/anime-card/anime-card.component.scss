@@ -106,3 +106,13 @@
 .eps {
   font-variant-numeric: tabular-nums;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta {
+    transition: none;
+  }
+
+  .tarjeta:active {
+    transform: none;
+  }
+}

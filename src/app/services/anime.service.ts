@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { Anime, PageResult } from '../models/anime.model';
 
 /** Subconjunto de JSON:API que consume la app (Kitsu). */
@@ -40,7 +41,7 @@ export class AnimeService {
   /** Tamaño de página acordado con el PLAN (Kitsu admite hasta 20). */
   readonly pageSize = 20;
 
-  private readonly base = 'https://kitsu.io/api/edge/anime';
+  private readonly base = environment.apiUrl;
   private readonly fields =
     'canonicalTitle,posterImage,startDate,averageRating,episodeCount,subtype';
   private readonly headers = { Accept: 'application/vnd.api+json' };
@@ -74,11 +75,13 @@ export class AnimeService {
       .pipe(
         map((r) => {
           const total = r.meta?.count ?? 0;
+          const items = (r.data ?? []).map((d) => this.toAnime(d));
           return {
-            items: (r.data ?? []).map((d) => this.toAnime(d)),
+            items,
             offset,
             total,
-            hasMore: offset + this.pageSize < total,
+            // Fin real: hay más solo si esta página trajo datos y queda catálogo.
+            hasMore: items.length > 0 && offset + this.pageSize < total,
           };
         }),
       );

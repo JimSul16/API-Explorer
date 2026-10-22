@@ -124,4 +124,52 @@ describe('HomePage', () => {
     expect(lista.estado()).toBe('vacio');
     expect(lista.error()).toBe(false);
   });
+
+  it('una página vacía corta la paginación en vez de repetir peticiones', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
+    await fixture.whenStable();
+
+    const vacia = lista.cargar();
+    http.expectOne((r) => r.params.get('page[offset]') === '20').flush(pagina([], 100));
+    await vacia;
+
+    expect(lista.hasMore()).toBe(false);
+    expect(lista.items().length).toBe(2);
+  });
+
+  it('no lanza dos peticiones simultáneas', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
+    await fixture.whenStable();
+
+    const primera = lista.cargar();
+    const segunda = lista.cargar(); // el guard la descarta
+    const peticiones = http.match((r) => r.params.get('page[offset]') === '20');
+
+    expect(peticiones.length).toBe(1);
+    peticiones[0].flush(pagina([3], 100));
+    await Promise.all([primera, segunda]);
+
+    expect(lista.items().map((a) => a.id)).toEqual(['1', '2', '3']);
+  });
+
+  it('completa el infinite scroll aunque la página falle', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1], 100));
+    await fixture.whenStable();
+
+    let completados = 0;
+    (lista as unknown as { infinite?: unknown }).infinite = {
+      complete: () => {
+        completados += 1;
+      },
+    };
+
+    const fallo = lista.cargar();
+    http
+      .expectOne((r) => r.params.get('page[offset]') === '20')
+      .flush('caído', { status: 500, statusText: 'Server Error' });
+    await fallo;
+
+    expect(completados).toBe(1);
+    expect(lista.cargando()).toBe(false);
+  });
 });

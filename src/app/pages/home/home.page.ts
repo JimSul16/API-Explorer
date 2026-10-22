@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import {
   IonButton,
   IonContent,
@@ -21,6 +21,7 @@ type EstadoLista = 'cargando' | 'error' | 'vacio' | 'lista';
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     IonHeader,
     IonToolbar,
@@ -52,6 +53,20 @@ export class HomePage implements OnInit {
 
   readonly totalTexto = computed(() => this.total().toLocaleString('es-EC'));
 
+  /** Texto de cabecera que nunca contradice al estado visible. */
+  readonly resumen = computed(() => {
+    if (this.total() > 0) {
+      return `${this.totalTexto()} títulos · cargados ${this.items().length}`;
+    }
+    if (this.estado() === 'error') {
+      return 'Sin conexión con la API';
+    }
+    if (this.estado() === 'vacio') {
+      return 'La API no devolvió títulos';
+    }
+    return 'Conectando con Kitsu…';
+  });
+
   readonly estado = computed<EstadoLista>(() => {
     if (this.cargando() && this.items().length === 0) {
       return 'cargando';
@@ -67,6 +82,17 @@ export class HomePage implements OnInit {
 
   ngOnInit(): void {
     void this.cargar();
+  }
+
+  /** Vuelve al inicio del catálogo (estado vacío o error de la primera página). */
+  async reiniciar(): Promise<void> {
+    this.ids.clear();
+    this.offset = 0;
+    this.items.set([]);
+    this.total.set(0);
+    this.hasMore.set(true);
+    this.error.set(false);
+    await this.cargar();
   }
 
   /**
@@ -97,6 +123,5 @@ export class HomePage implements OnInit {
     } finally {
       this.cargando.set(false);
       this.infinite?.complete();
-    }
-  }
+    }  }
 }

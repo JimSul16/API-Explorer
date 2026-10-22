@@ -484,9 +484,9 @@ export class FavoritesService {
 | Fase | Agente | Subagente | Skills | Estado |
 |---|---|---|---|---|
 | A — Verificar API | 🟦 `mimo-infra` | `verificador-api` | `ionic-app-setup` | ✅ Kitsu probada (200 OK, paginación confirmada) |
-| B — Estructura R7 + deps | 🟦 `mimo-infra` | `verificador-build` | `ionic-app-setup`, `pruebas-frontend-esfot` | ⬜ pendiente |
-| C — R1 listado + **interfaz** | 🟩 `deepseek-codigo` | `verificador-build` + `revisor-rubrica` | **`ui-ionic-design`**, `pruebas-frontend-esfot` | ⬜ pendiente |
-| D — R2 infinite scroll + estados | 🟩 `deepseek-codigo` | `verificador-build` + `revisor-rubrica` | **`ui-ionic-design`**, `pruebas-frontend-esfot` | ⬜ pendiente |
+| B — Estructura R7 + deps | 🟦 `mimo-infra` | `verificador-build` | `ionic-app-setup`, `pruebas-frontend-esfot` | ✅ **Cerrada 22/10 20:14** — scaffold, `provideHttpClient`, rutas, `@capacitor/preferences`, README parcial, `BUILD: verde`, commit `1269883` |
+| C — R1 listado + **interfaz** | 🟩 `deepseek-codigo` | `verificador-build` + `revisor-rubrica` | **`ui-ionic-design`**, `pruebas-frontend-esfot` | ✅ **Cerrada 22/10 20:20** — Kitsu real (`page[limit]`/`page[offset]`/`fields[anime]`), `Anime`/`PageResult`, `AnimeService`, `anime-card` (portada 2:3 + monograma), paleta medianoche/coral, `BUILD: verde` · **R1 20/20** |
+| D — R2 infinite scroll + estados | 🟩 `deepseek-codigo` | `verificador-build` + `revisor-rubrica` | **`ui-ionic-design`**, `pruebas-frontend-esfot` | ✅ **Cerrada 22/10 20:20** — `ion-infinite-scroll`, `Set` anti-duplicados, guard, `complete()` en `finally`, `[disabled]` al agotar, error inline + reintento mismo offset, skeleton/vacío/error, **9/9 tests** · **R2 24/25** |
 | F — Commit + README parcial + demo | 🟦 `mimo-infra` | `verificador-build` | `pruebas-frontend-esfot` | ⬜ pendiente |
 
 **Etapa posterior (asignada, fuera del plan):**

@@ -12,13 +12,7 @@
   <section class="intro">
     <p class="eyebrow">Catálogo JSON:API</p>
     <h2 class="lema">Datos reales,<br /><em>scroll infinito</em>.</h2>
-    <p class="cifras">
-      @if (total() > 0) {
-        {{ totalTexto() }} títulos · cargados {{ items().length }}
-      } @else {
-        Conectando con Kitsu…
-      }
-    </p>
+    <p class="cifras" aria-live="polite">{{ resumen() }}</p>
   </section>
 
   @switch (estado()) {
@@ -41,7 +35,7 @@
         <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
         <h3>No pudimos conectar con Kitsu</h3>
         <p>Revisa tu conexión y vuelve a intentarlo. El catálogo no se ha perdido.</p>
-        <ion-button class="reintentar" (click)="cargar()">Reintentar</ion-button>
+        <ion-button class="reintentar" (click)="reiniciar()">Reintentar</ion-button>
       </div>
     }
 
@@ -49,8 +43,8 @@
       <div class="panel">
         <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
         <h3>Sin resultados</h3>
-        <p>El catálogo llegó vacío. Intenta recargar la lista.</p>
-        <ion-button class="reintentar" (click)="cargar()">Reintentar</ion-button>
+        <p>La API no devolvió títulos en esta carga. Vuelve a pedir el catálogo.</p>
+        <ion-button class="reintentar" (click)="reiniciar()">Reintentar</ion-button>
       </div>
     }
 
@@ -78,7 +72,11 @@
     }
   }
 
-  <ion-infinite-scroll threshold="140px" [disabled]="!hasMore()" (ionInfinite)="cargar()">
+  <ion-infinite-scroll
+    threshold="140px"
+    [disabled]="!hasMore() || error() || items().length === 0"
+    (ionInfinite)="cargar()"
+  >
     <ion-infinite-scroll-content
       loadingSpinner="dots"
       loadingText="Cargando más títulos…"
