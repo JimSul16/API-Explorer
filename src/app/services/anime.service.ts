@@ -99,7 +99,10 @@ export class AnimeService {
     if (error.status === 0) {
       return { tipo: 'red', status: 0 };
     }
-    if (error.status >= 500 || error.status === 429) {
+    if (error.status === 429) {
+      return { tipo: 'limite', status: 429 };
+    }
+    if (error.status >= 500) {
       return { tipo: 'servidor', status: error.status };
     }
     return { tipo: 'cliente', status: error.status };

@@ -44,7 +44,11 @@ export class HomePage implements OnInit {
   readonly cargando = signal(false);
   readonly hasMore = signal(true);
 
-  /** Último fallo clasificado; `error` es su lectura booleana. */
+  /**
+   * Último fallo clasificado. Su presencia **pausa el scroll automático**
+   * (`[disabled]` del infinite scroll): así un fallo persistente no encadena
+   * peticiones al esconderse el spinner; el reintento lo decide el usuario.
+   */
   readonly fallo = signal<FalloApi | null>(null);
   readonly error = computed(() => this.fallo() !== null);
 
@@ -65,10 +69,28 @@ export class HomePage implements OnInit {
     switch (fallo.tipo) {
       case 'red':
         return 'No hay conexión con la API. Revisa tu red e inténtalo de nuevo.';
+      case 'limite':
+        return 'Demasiadas peticiones seguidas. Espera unos segundos y reintenta.';
       case 'servidor':
         return `Kitsu está fallando (error ${fallo.status}). Espera un momento y reintenta.`;
       case 'cliente':
         return `La API rechazó la petición (error ${fallo.status}). Reintenta en unos segundos.`;
+    }
+  });
+
+  /** Etiqueta corta para la cabecera, alineada con el tipo de fallo. */
+  private readonly etiquetaFallo = computed(() => {
+    switch (this.fallo()?.tipo) {
+      case 'red':
+        return 'Sin conexión con la API';
+      case 'limite':
+        return 'Demasiadas peticiones';
+      case 'servidor':
+        return 'La API respondió con error';
+      case 'cliente':
+        return 'Petición rechazada por la API';
+      default:
+        return 'Error al cargar el catálogo';
     }
   });
 
@@ -78,7 +100,7 @@ export class HomePage implements OnInit {
       return `${this.totalTexto()} títulos · cargados ${this.items().length}`;
     }
     if (this.estado() === 'error') {
-      return this.fallo()?.tipo === 'red' ? 'Sin conexión con la API' : 'La API respondió con error';
+      return this.etiquetaFallo();
     }
     if (this.estado() === 'vacio') {
       return 'La API no devolvió títulos';
@@ -134,9 +156,12 @@ export class HomePage implements OnInit {
 
       this.items.update((prev) => [...prev, ...nuevos]);
       // Avanza por lo realmente recibido: una página corta no debe saltarse títulos.
-      this.offset = res.offset + (res.items.length || this.svc.pageSize);
-      this.total.set(res.total);
-      this.hasMore.set(res.hasMore);
+      this.offset = res.offset + res.items.length;
+      if (res.total > 0) {
+        this.total.set(res.total);
+      }
+      // Página repetida (solo duplicados) = sin progreso real: no seguir pidiendo.
+      this.hasMore.set(res.items.length > 0 && nuevos.length === 0 ? false : res.hasMore);
     } catch (motivo: unknown) {
       // El offset no avanza: el reintento pide exactamente la misma página.
       // El servicio solo lanza `FalloApi` (ver clasificar()).

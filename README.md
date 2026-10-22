@@ -201,7 +201,7 @@ src/app/
 - **APK:** `app-debug.apk` (4.16 MB) compilado **por terminal**
 - **Historial:** commits atómicos por fase (`fase-B` → `fase-C-D` → `fase-F` → `evidencia-apk`)
 - **Captura/video** del listado + infinite scrolling: _pendiente (etapa final)_
-- **Repositorio en GitHub:** _pendiente (etapa final)_
+- **Repositorio:** ✅ **https://github.com/JimSul16/API-Explorer** (branch `main`, historial por fases)
 
 ---
 

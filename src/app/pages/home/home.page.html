@@ -74,7 +74,7 @@
 
   <ion-infinite-scroll
     threshold="140px"
-    [disabled]="!hasMore() || items().length === 0"
+    [disabled]="!hasMore() || error() || items().length === 0"
     (ionInfinite)="cargar()"
   >
     <ion-infinite-scroll-content

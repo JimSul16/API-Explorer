@@ -18,6 +18,7 @@
 | **Rúbrica (hoy)** | `revisor-rubrica` → **74/75** evaluables: R1 20/20 · R2 24/25 · R7 20/20 · estados 10/10 |
 | Commits | `1269883` fase-B · **`b7116f2` fase-C-D ✅ commiteado** · `26d550a` limpieza · siguiente: `fase-F` (MiMo) |
 | **🚦 Señal para DeepSeek** | ✅ **`fase-C-D: commiteado (b7116f2)`** → puede arrancar R3 (búsqueda) → R4 (detalle) → R6 (favoritos) |
+| **📘 Registros de continuidad** | `REGISTRO-MIMO.md` (🟦 MiMo: todo lo hecho + comandos + lo que falta) · `REGISTRO-DEEPSEEK.md` (🟩 DeepSeek: código e interfaz) → base del **nuevo plan en nueva sesión** (R3–R6) |
 | Archivos tocados | raíz + configs (MiMo) · `src/**` completo (DeepSeek) |
 
 ---

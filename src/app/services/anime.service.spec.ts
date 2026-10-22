@@ -89,7 +89,7 @@ describe('AnimeService', () => {
     expect((await vacia).hasMore).toBe(false);
   });
 
-  it('clasifica red caída, error del servidor y rechazo del cliente', async () => {
+  it('clasifica red caída, error del servidor, límite de peticiones y rechazo del cliente', async () => {
     const red = firstValueFrom(svc.getAnime('', 0));
     http
       .expectOne((r) => r.url === URL_KITSU)
@@ -101,6 +101,12 @@ describe('AnimeService', () => {
       .expectOne((r) => r.url === URL_KITSU)
       .flush('caído', { status: 503, statusText: 'Service Unavailable' });
     await expect(servidor).rejects.toMatchObject({ tipo: 'servidor', status: 503 });
+
+    const limite = firstValueFrom(svc.getAnime('', 0));
+    http
+      .expectOne((r) => r.url === URL_KITSU)
+      .flush('demasiadas', { status: 429, statusText: 'Too Many Requests' });
+    await expect(limite).rejects.toMatchObject({ tipo: 'limite', status: 429 });
 
     const cliente = firstValueFrom(svc.getAnime('', 0));
     http

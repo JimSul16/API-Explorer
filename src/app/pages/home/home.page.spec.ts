@@ -119,11 +119,13 @@ describe('HomePage', () => {
     expect(lista.items().map((a) => a.id)).toEqual(['1', '2', '3']);
   });
 
-  it('corta la paginación al alcanzar meta.count', async () => {
+  it('corta la paginación y deshabilita el scroll al alcanzar meta.count', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 20));
     await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(lista.hasMore()).toBe(false);
+    expect(scroll().disabled).toBe(true);
   });
 
   it('distingue una respuesta vacía de un error de red', async () => {
@@ -191,14 +193,25 @@ describe('HomePage', () => {
     const siguiente = lista.cargar();
     const req = http.expectOne((r) => r.params.get('page[offset]') === '3');
 
-    expect(req.request.params.get('page[offset]')).not.toBe('20');
     req.flush(pagina([4], 100));
     await siguiente;
 
     expect(lista.items().map((a) => a.id)).toEqual(['1', '2', '3', '4']);
   });
 
-  it('deja el scroll disponible tras un error y lo deshabilita al agotar', async () => {
+  it('se detiene si la API repite una página (sin progreso real)', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
+    await fixture.whenStable();
+
+    const repetida = lista.cargar();
+    http.expectOne((r) => r.params.get('page[offset]') === '2').flush(pagina([1, 2], 100));
+    await repetida;
+
+    expect(lista.items().length).toBe(2); // no crece
+    expect(lista.hasMore()).toBe(false); // y no encadena más peticiones
+  });
+
+  it('pausa el scroll tras un error (sin bucle) y lo rehabilita al reintentar', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
     await fixture.whenStable();
     fixture.detectChanges();
@@ -212,15 +225,17 @@ describe('HomePage', () => {
     fixture.detectChanges();
 
     expect(lista.error()).toBe(true);
-    expect(scroll().disabled).toBe(false); // se puede reintentar scrolleando
+    expect(scroll().disabled).toBe(true); // sin reintentos automáticos en bucle
 
-    const fin = lista.cargar();
-    http.expectOne((r) => r.params.get('page[offset]') === '2').flush(pagina([3], 20));
-    await fin;
+    const reintento = lista.cargar(); // el botón inline limpia el fallo
     fixture.detectChanges();
+    expect(scroll().disabled).toBe(false);
 
-    expect(lista.hasMore()).toBe(false);
-    expect(scroll().disabled).toBe(true);
+    http.expectOne((r) => r.params.get('page[offset]') === '2').flush(pagina([3], 100));
+    await reintento;
+
+    expect(lista.error()).toBe(false);
+    expect(lista.items().length).toBe(3);
   });
 
   it('explica distinto una red caída que un error del servidor', async () => {
@@ -244,5 +259,14 @@ describe('HomePage', () => {
 
     expect(lista.fallo()?.tipo).toBe('servidor');
     expect(lista.mensajeFallo()).toContain('Kitsu está fallando');
+
+    const limite = lista.cargar();
+    http
+      .expectOne((r) => r.params.get('page[offset]') === '2')
+      .flush('demasiadas', { status: 429, statusText: 'Too Many Requests' });
+    await limite;
+
+    expect(lista.fallo()?.tipo).toBe('limite');
+    expect(lista.mensajeFallo()).toContain('Demasiadas peticiones');
   });
 });

@@ -21,7 +21,7 @@ export interface PageResult {
  * Fallo ya clasificado por el servicio, para que la UI elija el mensaje
  * sin mirar códigos HTTP ni romper el contrato de `PageResult`.
  */
-export type FalloApiTipo = 'red' | 'servidor' | 'cliente';
+export type FalloApiTipo = 'red' | 'servidor' | 'cliente' | 'limite';
 
 export interface FalloApi {
   tipo: FalloApiTipo;
