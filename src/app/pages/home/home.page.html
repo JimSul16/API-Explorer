@@ -33,8 +33,8 @@
     @case ('error') {
       <div class="panel" role="alert">
         <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-        <h3>No pudimos conectar con Kitsu</h3>
-        <p>Revisa tu conexión y vuelve a intentarlo. El catálogo no se ha perdido.</p>
+        <h3>No pudimos cargar el catálogo</h3>
+        <p>{{ mensajeFallo() }}</p>
         <ion-button class="reintentar" (click)="reiniciar()">Reintentar</ion-button>
       </div>
     }
@@ -58,7 +58,7 @@
       @if (error()) {
         <div class="aviso" role="alert">
           <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-          <p>No se pudo cargar más. Tu lista sigue aquí.</p>
+          <p>{{ mensajeFallo() }} Tu lista sigue aquí.</p>
           <ion-button fill="outline" class="reintentar" (click)="cargar()">Reintentar</ion-button>
         </div>
       }
@@ -74,7 +74,7 @@
 
   <ion-infinite-scroll
     threshold="140px"
-    [disabled]="!hasMore() || error() || items().length === 0"
+    [disabled]="!hasMore() || items().length === 0"
     (ionInfinite)="cargar()"
   >
     <ion-infinite-scroll-content

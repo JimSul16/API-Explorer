@@ -1,8 +1,8 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, catchError, map, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Anime, PageResult } from '../models/anime.model';
+import { Anime, FalloApi, PageResult } from '../models/anime.model';
 
 /** Subconjunto de JSON:API que consume la app (Kitsu). */
 interface KitsuPoster {
@@ -84,7 +84,25 @@ export class AnimeService {
             hasMore: items.length > 0 && offset + this.pageSize < total,
           };
         }),
+        catchError((error: unknown) => throwError(() => this.clasificar(error))),
       );
+  }
+
+  /**
+   * Red caída (sin respuesta) ≠ API rota (5xx/429) ≠ petición rechazada (4xx).
+   * La página decide el mensaje; el contrato de `PageResult` no cambia.
+   */
+  private clasificar(error: unknown): FalloApi {
+    if (!(error instanceof HttpErrorResponse)) {
+      return { tipo: 'red', status: 0 };
+    }
+    if (error.status === 0) {
+      return { tipo: 'red', status: 0 };
+    }
+    if (error.status >= 500 || error.status === 429) {
+      return { tipo: 'servidor', status: error.status };
+    }
+    return { tipo: 'cliente', status: error.status };
   }
 
   /** JSON:API → modelo propio. */

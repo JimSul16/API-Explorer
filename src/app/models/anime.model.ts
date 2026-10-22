@@ -16,3 +16,15 @@ export interface PageResult {
   total: number;
   hasMore: boolean;
 }
+
+/**
+ * Fallo ya clasificado por el servicio, para que la UI elija el mensaje
+ * sin mirar códigos HTTP ni romper el contrato de `PageResult`.
+ */
+export type FalloApiTipo = 'red' | 'servidor' | 'cliente';
+
+export interface FalloApi {
+  tipo: FalloApiTipo;
+  /** Código HTTP; 0 cuando ni siquiera hubo respuesta (red caída). */
+  status: number;
+}

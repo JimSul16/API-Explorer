@@ -12,7 +12,7 @@ import {
 } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { AnimeCardComponent } from '../../components/anime-card/anime-card.component';
-import { Anime } from '../../models/anime.model';
+import { Anime, FalloApi } from '../../models/anime.model';
 import { AnimeService } from '../../services/anime.service';
 
 type EstadoLista = 'cargando' | 'error' | 'vacio' | 'lista';
@@ -42,8 +42,11 @@ export class HomePage implements OnInit {
   readonly items = signal<Anime[]>([]);
   readonly total = signal(0);
   readonly cargando = signal(false);
-  readonly error = signal(false);
   readonly hasMore = signal(true);
+
+  /** Último fallo clasificado; `error` es su lectura booleana. */
+  readonly fallo = signal<FalloApi | null>(null);
+  readonly error = computed(() => this.fallo() !== null);
 
   @ViewChild(IonInfiniteScroll) private infinite?: IonInfiniteScroll;
 
@@ -53,13 +56,29 @@ export class HomePage implements OnInit {
 
   readonly totalTexto = computed(() => this.total().toLocaleString('es-EC'));
 
+  /** Causa del fallo en lenguaje humano (la del panel y la del aviso inline). */
+  readonly mensajeFallo = computed(() => {
+    const fallo = this.fallo();
+    if (!fallo) {
+      return '';
+    }
+    switch (fallo.tipo) {
+      case 'red':
+        return 'No hay conexión con la API. Revisa tu red e inténtalo de nuevo.';
+      case 'servidor':
+        return `Kitsu está fallando (error ${fallo.status}). Espera un momento y reintenta.`;
+      case 'cliente':
+        return `La API rechazó la petición (error ${fallo.status}). Reintenta en unos segundos.`;
+    }
+  });
+
   /** Texto de cabecera que nunca contradice al estado visible. */
   readonly resumen = computed(() => {
     if (this.total() > 0) {
       return `${this.totalTexto()} títulos · cargados ${this.items().length}`;
     }
     if (this.estado() === 'error') {
-      return 'Sin conexión con la API';
+      return this.fallo()?.tipo === 'red' ? 'Sin conexión con la API' : 'La API respondió con error';
     }
     if (this.estado() === 'vacio') {
       return 'La API no devolvió títulos';
@@ -91,7 +110,7 @@ export class HomePage implements OnInit {
     this.items.set([]);
     this.total.set(0);
     this.hasMore.set(true);
-    this.error.set(false);
+    this.fallo.set(null);
     await this.cargar();
   }
 
@@ -106,7 +125,7 @@ export class HomePage implements OnInit {
     }
 
     this.cargando.set(true);
-    this.error.set(false);
+    this.fallo.set(null);
 
     try {
       const res = await firstValueFrom(this.svc.getAnime('', this.offset));
@@ -114,14 +133,17 @@ export class HomePage implements OnInit {
       nuevos.forEach((a) => this.ids.add(a.id));
 
       this.items.update((prev) => [...prev, ...nuevos]);
-      this.offset = res.offset + this.svc.pageSize;
+      // Avanza por lo realmente recibido: una página corta no debe saltarse títulos.
+      this.offset = res.offset + (res.items.length || this.svc.pageSize);
       this.total.set(res.total);
       this.hasMore.set(res.hasMore);
-    } catch {
+    } catch (motivo: unknown) {
       // El offset no avanza: el reintento pide exactamente la misma página.
-      this.error.set(true);
+      // El servicio solo lanza `FalloApi` (ver clasificar()).
+      this.fallo.set(motivo as FalloApi);
     } finally {
       this.cargando.set(false);
       this.infinite?.complete();
-    }  }
+    }
+  }
 }
