@@ -43,6 +43,8 @@ export class HomePage implements OnInit {
   readonly total = signal(0);
   readonly cargando = signal(false);
   readonly hasMore = signal(true);
+  /** El fin no vino de `meta.count` sino de una página sin títulos nuevos. */
+  readonly finSinProgreso = signal(false);
 
   /**
    * Último fallo clasificado. Su presencia **pausa el scroll automático**
@@ -96,8 +98,10 @@ export class HomePage implements OnInit {
 
   /** Texto de cabecera que nunca contradice al estado visible. */
   readonly resumen = computed(() => {
-    if (this.total() > 0) {
-      return `${this.totalTexto()} títulos · cargados ${this.items().length}`;
+    if (this.items().length > 0) {
+      return this.total() > 0
+        ? `${this.totalTexto()} títulos · cargados ${this.items().length}`
+        : `Cargados ${this.items().length} títulos`;
     }
     if (this.estado() === 'error') {
       return this.etiquetaFallo();
@@ -132,6 +136,7 @@ export class HomePage implements OnInit {
     this.items.set([]);
     this.total.set(0);
     this.hasMore.set(true);
+    this.finSinProgreso.set(false);
     this.fallo.set(null);
     await this.cargar();
   }
@@ -151,8 +156,16 @@ export class HomePage implements OnInit {
 
     try {
       const res = await firstValueFrom(this.svc.getAnime('', this.offset));
-      const nuevos = res.items.filter((a) => !this.ids.has(a.id));
-      nuevos.forEach((a) => this.ids.add(a.id));
+
+      // Deduplica también dentro de la misma página: `track anime.id` del @for
+      // rompería (NG0955) si la API repitiera un id en una sola respuesta.
+      const nuevos: Anime[] = [];
+      for (const anime of res.items) {
+        if (!this.ids.has(anime.id)) {
+          this.ids.add(anime.id);
+          nuevos.push(anime);
+        }
+      }
 
       this.items.update((prev) => [...prev, ...nuevos]);
       // Avanza por lo realmente recibido: una página corta no debe saltarse títulos.
@@ -161,14 +174,23 @@ export class HomePage implements OnInit {
         this.total.set(res.total);
       }
       // Página repetida (solo duplicados) = sin progreso real: no seguir pidiendo.
-      this.hasMore.set(res.items.length > 0 && nuevos.length === 0 ? false : res.hasMore);
+      const sinProgreso = res.items.length > 0 && nuevos.length === 0;
+      this.finSinProgreso.set(sinProgreso);
+      this.hasMore.set(sinProgreso ? false : res.hasMore);
     } catch (motivo: unknown) {
       // El offset no avanza: el reintento pide exactamente la misma página.
-      // El servicio solo lanza `FalloApi` (ver clasificar()).
-      this.fallo.set(motivo as FalloApi);
+      this.fallo.set(this.aFallo(motivo));
     } finally {
       this.cargando.set(false);
       this.infinite?.complete();
     }
+  }
+
+  /** Normaliza lo lanzado por el servicio; un error inesperado no deja el panel vacío. */
+  private aFallo(motivo: unknown): FalloApi {
+    if (typeof motivo === 'object' && motivo !== null && 'tipo' in motivo && 'status' in motivo) {
+      return motivo as FalloApi;
+    }
+    return { tipo: 'servidor', status: 0 };
   }
 }

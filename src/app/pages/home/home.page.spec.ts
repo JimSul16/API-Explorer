@@ -95,6 +95,13 @@ describe('HomePage', () => {
     expect(lista.hasMore()).toBe(true); // todavía quedan títulos en el catálogo
   });
 
+  it('deduplica también dentro de la misma página (protege el track del @for)', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 1, 2], 100));
+    await fixture.whenStable();
+
+    expect(lista.items().map((a) => a.id)).toEqual(['1', '2']);
+  });
+
   it('un error no pierde la lista, desbloquea la UI y reintenta el mismo offset', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 60));
     await fixture.whenStable();
@@ -125,6 +132,7 @@ describe('HomePage', () => {
     fixture.detectChanges();
 
     expect(lista.hasMore()).toBe(false);
+    expect(lista.finSinProgreso()).toBe(false); // fin real por meta.count
     expect(scroll().disabled).toBe(true);
   });
 
@@ -209,6 +217,7 @@ describe('HomePage', () => {
 
     expect(lista.items().length).toBe(2); // no crece
     expect(lista.hasMore()).toBe(false); // y no encadena más peticiones
+    expect(lista.finSinProgreso()).toBe(true); // el fin no vino de meta.count
   });
 
   it('pausa el scroll tras un error (sin bucle) y lo rehabilita al reintentar', async () => {
@@ -236,6 +245,8 @@ describe('HomePage', () => {
 
     expect(lista.error()).toBe(false);
     expect(lista.items().length).toBe(3);
+    expect(scroll().disabled).toBe(false); // y no queda un reintento encadenado
+    expect(lista.cargando()).toBe(false);
   });
 
   it('explica distinto una red caída que un error del servidor', async () => {

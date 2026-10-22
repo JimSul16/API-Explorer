@@ -12,11 +12,11 @@
 | **Alcance del plan** | **R1 + R2 + estructura R7** (fases A–D + F); R3–R6 y APK = etapa posterior (PLAN.md §4.2) |
 | **Modo** | **Paralelo** (PLAN.md §3.4): 🟦 MiMo = raíz/config · 🟩 DeepSeek = `src/**` |
 | **SCAFFOLD** | ✅ **listo** (22/10 20:12) |
-| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · **F ✅ (MiMo, 22/10 20:32)** → **alcance del plan CERRADO** · etapa posterior: E/R3, G/R4+R6 (DeepSeek) |
+| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ (MiMo, 22/10 20:32) · **P ✅ pulido R1+R2+R7 (DeepSeek)** → **alcance del plan CERRADO** · etapa posterior: E/R3, G/R4+R6 (DeepSeek) |
 | Responsable | 🟩 DeepSeek (`deepseek-codigo`) para R3 → R4 → R6 · 🟦 MiMo en espera (etapa posterior: APK, auditoría, GitHub) |
-| **BUILD** | ✅ **verde, 0 warnings** — `npm run build` (5 s) · `tsc --noEmit` 0 · `ng lint` pass · `npm test` **9/9** (22/10 20:32, budget SCSS ya en 3 kB/6 kB) |
-| **Rúbrica (hoy)** | `revisor-rubrica` → **74/75** evaluables: R1 20/20 · R2 24/25 · R7 20/20 · estados 10/10 |
-| Commits | `1269883` fase-B · **`b7116f2` fase-C-D ✅ commiteado** · `26d550a` limpieza · siguiente: `fase-F` (MiMo) |
+| **BUILD** | ✅ **verde, 0 warnings** — `npm run build` (6 s) · `tsc` app y spec 0 · `ng lint` pass · `npm test` **18/18** (22/10, tras el pulido) |
+| **Rúbrica (hoy)** | `revisor-rubrica` → **75/75** evaluables: R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10. Sin bloqueantes ni medios. |
+| Commits | `1269883` fase-B · `b7116f2` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido (16/16) · `934c977` REGISTRO-MIMO + registro |
 | **🚦 Señal para DeepSeek** | ✅ **`fase-C-D: commiteado (b7116f2)`** → puede arrancar R3 (búsqueda) → R4 (detalle) → R6 (favoritos) |
 | **📘 Registros de continuidad** | `REGISTRO-MIMO.md` (🟦 MiMo: todo lo hecho + comandos + lo que falta) · `REGISTRO-DEEPSEEK.md` (🟩 DeepSeek: código e interfaz) → base del **nuevo plan en nueva sesión** (R3–R6) |
 | Archivos tocados | raíz + configs (MiMo) · `src/**` completo (DeepSeek) |
@@ -140,6 +140,49 @@ npm test -- --watch=false            → 9/9 tests
 - El **remote GitHub** lo configura MiMo en la fase H (no subir todavía).
 
 ---
+
+## Handoff #4 — de DeepSeek a MiMo ✅ PULIDO R1+R2+R7 CERRADO
+
+**Fase completada:** **P — pulido de R1 + R2 + R7** (los 5 puntos del `revisor-rubrica` + 2 hallazgos de una segunda pasada). Alcance sin cambios: **no** se añadió R3, R4 ni R6.
+
+**Qué quedó hecho (zona DeepSeek: `src/**`)**
+- [x] **Offset por lo recibido**: `this.offset = res.offset + res.items.length` (antes `+ pageSize` fijo, que se saltaba títulos si una página venía corta). Test: página de 3 → siguiente petición con `offset=3`.
+- [x] **`[disabled]` vuelve a incluir `error()`**: se probó a quitarlo y la revisión demostró un **bucle de reintentos** (`complete()` oculta el spinner → el contenido encoge → salta `scroll` → nueva petición → falla → …). Queda `!hasMore() || error() || items().length === 0`: tras un fallo el scroll se pausa y el reintento es explícito (botón inline ≥44 px, que limpia el fallo). Test discriminante.
+- [x] **Freno de progreso**: si la API repite una página (todos duplicados), `hasMore=false` en vez de encadenar peticiones hasta `meta.count`. Test nuevo.
+- [x] **Copy del error según contexto**: panel "No pudimos cargar el catálogo" + `mensajeFallo()`; el aviso inline añade "Tu lista sigue aquí." (ya no promete "el catálogo no se ha perdido" en la primera carga). La cabecera usa `etiquetaFallo()`.
+- [x] **`FalloApi` tipado**: `catchError` en `AnimeService` clasifica `red` (status 0) · `limite` (429) · `servidor` (5xx) · `cliente` (resto) **sin tocar `PageResult`**; 4 mensajes distintos en la UI.
+- [x] **`total` solo se sobrescribe si `> 0`**; **tests usan `environment.apiUrl`**; eliminado el `constructor() {}` vacío del shell.
+- [x] **Nuevo `src/app/services/anime.service.spec.ts`** (contrato de params, normalización, `hasMore`, clasificación de fallos) → **18 tests en 3 archivos**.
+- [x] **Nits de la 3.ª pasada (revisor)**: deduplicación también **dentro** de una página (evita NG0955 en `track anime.id`), `aFallo()` valida lo capturado en vez de castear a ciegas, copy del fin con `finSinProgreso` ("La API dejó de devolver títulos nuevos") y `resumen` prioriza `items`.
+- [x] **`REGISTRO-DEEPSEEK.md`** creado: estado de `src/**`, contrato de datos, R1/R2/R7 con evidencia, tests, trampas para R3–R6 y siguiente tanda.
+
+**Decisiones a respetar**
+- Todo el HTTP vive en `AnimeService`; `getAnime(query, offset)` ya acepta búsqueda (`filter[text]` listo para R3).
+- `hasMore` real: `items.length > 0 && offset + 20 < meta.count`. **No** simular fin.
+- `[disabled]` del infinite scroll incluye `error()` a propósito (anti-bucle); cualquier reintento debe limpiar `fallo` antes de pedir (lo hace `cargar()`).
+- El APK actual (`android/app/build/outputs/apk/debug/app-debug.apk`) es del estado **anterior** al pulido: **MiMo debe regenerarlo**.
+- Tema oscuro por identidad (`dark.always`); iconos nuevos → `addIcons()` en `main.ts`.
+
+**⚠️ Trampa avisada para R3 (no está resuelta, hoy es inalcanzable)**
+- `reiniciar()` vacía `items` mientras podría haber una carga disparada por scroll en vuelo. Ionic pone `isLoading=false` en `disabledChanged()` **sin** resetear `didFire`; el `complete()` posterior sale por el early-return y el scroll **no vuelve a disparar**. Al implementar la búsqueda: esperar la petición en vuelo antes de vaciar, o vaciar al recibir la respuesta.
+
+**BUILD**
+```
+npm run build                          → verde, 0 errores, 0 warnings (4 s)
+npx tsc -p tsconfig.app.json --noEmit  → 0 errores
+npx tsc -p tsconfig.spec.json --noEmit → 0 errores
+npm run lint                           → All files pass linting
+npm test -- --watch=false              → 3 archivos · 18/18 tests
+```
+`verificador-build` (independiente): **BUILD: verde**, 0 errores / 0 warnings, 8/8 invariantes de R2 OK.
+
+**Rúbrica:** `revisor-rubrica` → **75/75** sobre lo evaluable: R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10. Sin bloqueantes ni medios.
+
+**Errores conocidos:** ninguno funcional.
+`README.md` puede seguir diciendo 9/9 tests → lo actual es **18/18** (zona MiMo).
+
+---
+
 
 ## Plantilla para los siguientes handoffs
 
