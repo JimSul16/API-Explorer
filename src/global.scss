@@ -92,3 +92,72 @@ ion-toolbar {
   color: var(--ion-color-secondary);
   border: 1px solid rgb(var(--ion-color-secondary-rgb) / 0.35);
 }
+
+/* Acceso a favoritos en la cabecera (R6): 44 px de área táctil. */
+.ir-favoritos {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-inline-end: 8px;
+  border-radius: 50%;
+  color: var(--ion-color-primary);
+  text-decoration: none;
+}
+
+.ir-favoritos ion-icon {
+  font-size: 22px;
+}
+
+.ir-favoritos .cuenta {
+  position: absolute;
+  top: 5px;
+  right: 3px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+  color: var(--ion-color-primary-contrast);
+  background: var(--ion-color-primary);
+}
+
+/* Aviso de fallo sin perder la lista + su reintento (home y favoritos). */
+.aviso {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 4px 16px 16px;
+  padding: 18px;
+  text-align: center;
+  border-radius: 16px;
+  background: var(--app-superficie);
+  border: 1px solid rgb(var(--ion-color-primary-rgb) / 0.3);
+}
+
+.aviso ion-icon {
+  font-size: 30px;
+  color: var(--ion-color-primary);
+}
+
+.aviso p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--app-texto-suave);
+}
+
+.reintentar-inline {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  background: transparent;
+  border: 1px solid var(--ion-color-primary);
+}
