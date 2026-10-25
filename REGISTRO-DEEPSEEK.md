@@ -1,33 +1,52 @@
-# REGISTRO-DEEPSEEK — estado de `src/**` (R1 + R2 + R7) para la etapa R3–R6
+# REGISTRO-DEEPSEEK — estado final de `src/**` (R1 – R7)
 
-> Sesión 🟩 **DeepSeek** (`deepseek-codigo`) · zona exclusiva: `src/**` · cierre 22/10/2026.
+> Sesión 🟩 **DeepSeek** (`deepseek-codigo`) · zona exclusiva: `src/**`.
+> Abierto al cerrar la etapa R1+R2+R7 (22/10) · **actualizado al cerrar R3–R6 (25/10)**.
 > Léelo junto a `REGISTRO-MIMO.md`, `HANDOFF.md` y `PLAN.md` antes de tocar código.
 
 ---
 
-## 1. Snapshot: qué hay hoy en `src/app`
+## 0. Titular
+
+**R1–R7 implementados y commiteados.** `fase-E-R3` (`a1a423f`) · `fase-G-R4R5` (`417b3d1`) · `fase-G-R6` (`f0998a4`) · `fc77b64` (estilos compartidos).
+Lo único que falta del plan es la **fase H de 🟦 MiMo**: verificación final, APK, auditoría, README y push.
+
+---
+
+## 1. Snapshot de `src/app`
 
 ```
 src/app/
 ├── app.component.ts/.html/.spec.ts     ion-app + ion-router-outlet (sin lógica)
-├── app.routes.ts                       '' → HomePage (lazy) · '**' → ''
-├── models/
-│   └── anime.model.ts                  Anime · PageResult · FalloApi/FalloApiTipo
+├── app.routes.ts                       '' → HomePage · 'anime/:id' → DetailPage · 'favoritos' → FavoritesPage · '**' → ''
+├── models/anime.model.ts               Anime (incl. sinopsis) · PageResult · FalloApi/FalloApiTipo
+├── lib/
+│   ├── fallos.ts                       mensajeDeFallo · etiquetaDeFallo · aFallo · esNoEncontrado
+│   ├── fallos.spec.ts                  5 tests
+│   └── portada.ts                      inicialesDe · matizDe · notaDe (monograma y nota)
 ├── services/
-│   ├── anime.service.ts                ÚNICA puerta a Kitsu (HttpClient)
-│   └── anime.service.spec.ts           4 tests (contrato, params, hasMore, FalloApi)
+│   ├── anime.service.ts                ÚNICA puerta a Kitsu (HttpClient): getAnime · getAnimeById · toAnime · clasificar
+│   ├── anime.service.spec.ts           7 tests
+│   ├── favorites.service.ts            Preferences: ids en signal, init idempotente, toggle con reversión
+│   └── favorites.service.spec.ts       9 tests
 ├── components/
-│   └── anime-card/                     tarjeta reutilizable (OnPush, input.required)
+│   ├── anime-card/                     portada 2:3 + monograma · estrella de favorito (input/output)
+│   └── panel-estado/                   panel compartido de cargando/vacío/error/noEncontrado
 └── pages/
-    └── home/                           listado + infinite scroll + estados
-        ├── home.page.ts/.html/.scss    14 tests en home.page.spec.ts
-src/theme/variables.scss                paleta e identidad
-src/global.scss                         dark.always + base (fondo, sin scroll horizontal)
-src/main.ts                             provideHttpClient(withFetch) + addIcons
+    ├── home/                           listado + búsqueda + infinite scroll + estados (23 tests)
+    ├── detail/                         ficha por :id con estados y favorito (9 tests)
+    └── favorites/                      favoritos locales con estados y fallos parciales (5 tests)
+
+src/theme/variables.scss                paleta e identidad (medianoche + coral sakura)
+src/global.scss                         dark.always + chrome de cabecera + .aviso/.reintentar-inline/.ir-favoritos
+src/main.ts                             provideHttpClient(withFetch) · provideAppInitializer(favoritos) · addIcons
 src/environments/environment(.prod).ts  apiUrl de Kitsu
 ```
 
-**Sin R3/R4/R6**: no hay `ion-searchbar`, ni ruta `anime/:id`, ni `favorites.service`. No hay `HttpClient` fuera de `AnimeService`.
+Reglas de arquitectura que **no** se rompieron:
+- `HttpClient` **solo** vive en `AnimeService`. Ninguna página ni componente lo importa.
+- `FavoritesService` es la **única** puerta a `@capacitor/preferences`.
+- `anime-card` y `panel-estado` son **presentacionales** (inputs/outputs, cero servicios).
 
 ---
 
@@ -37,9 +56,9 @@ src/environments/environment(.prod).ts  apiUrl de Kitsu
 
 | Tipo | Campos |
 |---|---|
-| `Anime` | `id`, `titulo`, `portada`, `anio`, `rating: number \| null`, `episodios: number \| null`, `tipo` (TV/Película/OVA/ONA/Especial/Música) |
+| `Anime` | `id`, `titulo`, `portada`, `anio`, `rating: number \| null`, `episodios: number \| null`, `tipo`, `sinopsis: string \| null` |
 | `PageResult` | `items`, `offset`, `total`, `hasMore` |
-| `FalloApi` | `{ tipo: 'red' \| 'servidor' \| 'cliente' \| 'limite'; status: number }` |
+| `FalloApi` | `{ tipo: 'red' \| 'servidor' \| 'cliente' \| 'limite' \| 'desconocido'; status: number }` |
 
 Reglas de paginación (verificadas contra la API real: `meta.count` = 22 515):
 
@@ -49,119 +68,114 @@ hasMore = items.length > 0 && offset + PAGE_SIZE < meta.count
 
 // página
 offset = res.offset + res.items.length     // por lo RECIBIDO, no por pageSize
-hasMore = res.items.length > 0 && nuevos.length === 0 ? false : res.hasMore
+hasMore = res.items.length > 0 && nuevos.length === 0 ? false : res.hasMore   // freno si la API repite página
 ```
 
-- `PAGE_SIZE = 20` (`AnimeService.pageSize`, Kitsu admite hasta 20).
-- `fields[anime]=canonicalTitle,posterImage,startDate,averageRating,episodeCount,subtype`.
-- `filter[text]` **ya está implementado** y solo se envía con query no vacía → listo para R3.
-- Header `Accept: application/vnd.api+json`.
-- URL desde `environment.apiUrl` (los specs también la usan).
+- `PAGE_SIZE = 20` (`AnimeService.pageSize`).
+- Listado: `fields[anime]=canonicalTitle,posterImage,startDate,averageRating,episodeCount,subtype`.
+- Detalle: los mismos campos **+ `synopsis`** (el listado la deja en `null` a propósito).
+- `filter[text]` solo se envía con query no vacía.
+- Header `Accept: application/vnd.api+json`; URL desde `environment.apiUrl`.
+- `getAnimeById` traduce un **200 sin `data`** a `HttpErrorResponse({ status: 404 })` → una sola vía de clasificación (`esNoEncontrado()`).
 
 ---
 
-## 3. R1 / R2 / R7 — dónde está cada punto
+## 3. R1 – R7: dónde está cada punto
 
 | Requisito | Implementación | Evidencia |
 |---|---|---|
-| **R1** datos reales | `AnimeService.getAnime()` → Kitsu; la página nunca importa `HttpClient` | `services/anime.service.ts:62-93` |
-| R1 tarjeta | `anime-card`: portada `aspect-ratio: 2/3` + monograma de respaldo (matiz por id), ★ nota /10, año · tipo · episodios, `loading="lazy"`, `alt` | `components/anime-card/*` |
-| **R2** scroll | `ion-infinite-scroll` + `ion-infinite-scroll-content` (dots) — **sin botón "cargar más"** | `home.page.html:75-84` |
-| R2 estado | `items` acumulados, `Set<string> ids` anti-duplicados, `offset`, `hasMore`, `cargando`, `fallo` (signals) | `home.page.ts:41-58` |
-| R2 guard | `if (this.cargando() || !this.hasMore())` → `complete()` y salir | `home.page.ts:144-147` |
-| R2 complete | `this.infinite?.complete()` **en el `finally`** (y en el early-return) | `home.page.ts:169-172` |
-| R2 fin real | `hasMore` por `meta.count` (no simulado) | `anime.service.ts:84` |
-| R2 error | error inline sin perder la lista + reintento del **mismo offset** (el offset no avanza en el catch) | `home.page.ts:165-168`, `html:58-64` |
-| R2 al agotar | `[disabled]="!hasMore() \|\| error() \|\| items().length === 0"` | `home.page.html:77` |
-| **R7** estructura | `models/ services/ pages/ components/`; standalone imports; rutas lazy | `app.routes.ts`, `home.page.ts:20-37` |
+| **R1** datos reales | `AnimeService.getAnime()` → Kitsu; la página nunca importa `HttpClient` | `services/anime.service.ts` |
+| R1 tarjeta | `anime-card`: portada `aspect-ratio: 2/3` + monograma (matiz por id), ★ nota /10, año · tipo · episodios, `loading="lazy"`, `alt` | `components/anime-card/*` |
+| **R2** scroll | `ion-infinite-scroll` + `ion-infinite-scroll-content` — sin botón "cargar más" | `home.page.html` |
+| R2 estado | `items` acumulados, `Set<string> ids`, `offset`, `hasMore`, `cargando`, `fallo` (signals) | `home.page.ts` |
+| R2 guard | `if (this.cargando() \|\| !this.hasMore())` → `complete()` y salir | `home.page.ts` `cargar()` |
+| R2 complete | `this.infinite?.complete()` en el `finally` **y** en el early-return; dentro del guard de generación a propósito | `home.page.ts` |
+| R2 fin real | `hasMore` por `meta.count` (no simulado) + `finSinProgreso` si la API repite página | `anime.service.ts`, `home.page.ts` |
+| R2 error | aviso inline sin perder la lista + reintento del **mismo offset** | `home.page.html`, `global.scss` `.aviso` |
+| R2 al agotar | `[disabled]="!hasMore() \|\| fallo() \|\| items().length === 0"` | `home.page.html` |
+| **R3** búsqueda | `ion-searchbar [debounce]="400"` + `query` en signal + chip con la consulta + `close-circle` | `home.page.html/.ts` |
+| R3 reinicio | `reiniciar(query)`: `ids.clear()` · `offset=0` · `items=[]` · `total=0` · `hasMore=true` · `finSinProgreso=false` · `fallo=null` → `cargar()` → `scrollToTop()` | `home.page.ts` |
+| R3 respuestas viejas | **token de generación** (`generacion`): respuesta, `catch` y `finally` de una generación anterior se descartan | `home.page.ts` |
+| R3 trampa Ionic | `reiniciar()` espera `enVuelo` antes de vaciar (si no, `didFire=true` deja el scroll mudo) | `home.page.ts` |
+| R3 vacío ≠ error | vacío con acción "Ver catálogo completo"; error con "Reintentar" | `panel-estado` |
+| **R4** detalle | ruta lazy `anime/:id` (input binding) + `getAnimeById()` reutilizando `toAnime()` | `app.routes.ts`, `anime.service.ts` |
+| R4 navegación | tarjeta → `<a [routerLink]="['/anime', anime().id]">`; `ion-back-button`; el outlet cachea home y **conserva el scroll** | `anime-card.component.html`, `detail.page.html` |
+| R4 recarga | `effect()` sobre `input('id')` + token de generación + `pedido` (evita repetir si el id se reasigna igual) | `detail.page.ts` |
+| **R5** estados | `panel-estado` reutilizado: cargando (skeleton con la forma de la ficha) · `noEncontrado` (404) · `error` con Reintentar · vacío en home y favoritos | `pages/*/` |
+| **R6** favoritos | `FavoritesService`: **solo ids** (`JSON.stringify(string[])`), `signal` + `total`, `init()` idempotente, `toggle()` optimista con **reversión del id concreto**, `quitar()`, `parsear()` defensivo | `services/favorites.service.ts` |
+| R6 arranque | `provideAppInitializer(() => inject(FavoritesService).init())` → la estrella ya sale marcada en el primer render | `main.ts` |
+| R6 UI | ★ de 44 px con `aria-pressed` en la tarjeta (hermano del `<a>`) · botón "Guardar en favoritos" en la ficha · acceso con contador en la cabecera | `anime-card`, `detail.page`, `global.scss` `.ir-favoritos` |
+| R6 página | `pages/favorites/` + ruta `favoritos`: pide **una ficha por id en serie** (Kitsu 3 req/s), reutiliza lo cargado en `ionViewWillEnter`, estados cargando/vacío/error/**aviso de fallos parciales** | `pages/favorites/` |
+| **R7** estructura | `models/ services/ pages/ components/ lib/`; standalone con `imports: []`; rutas lazy; `environment` en uso | `app.routes.ts`, todo `src/app` |
 
 ---
 
 ## 4. Interfaz (skill `ui-ionic-design`)
 
-- Identidad **medianoche + coral sakura**: fondo `#0d0f16`, superficie `#171a24`, primario `#ff5a76`, secundario aqua `#35d0ba`, estrella `#ffc857`. Los 5 tonos de cada color custom están definidos.
-- Tema **oscuro por identidad** (`dark.always.css` en `global.scss`), no por `prefers-color-scheme`.
-- Estados: skeleton con shimmer en formato de tarjeta · vacío · error con **Reintentar ≥44 px** · "Has llegado al final · N de 22 515 títulos".
-- Copy del error según el fallo (`mensajeFallo()`): red / servidor (5xx) / límite (429) / cliente (4xx). La cabecera usa `etiquetaFallo()`.
-- Accesibilidad: `aria-live` en el contador, `aria-busy` en el skeleton, `role="alert"` en errores, `alt` descriptivo, iconos con `aria-hidden`.
-- Iconos: se registran una sola vez con `addIcons()` en `main.ts` (`star`, `cloud-offline-outline`, `search-outline`, `checkmark-done-outline`). **Si añades un icono, regístralo ahí** o no se verá.
+- Identidad **medianoche + coral sakura**: fondo `#0d0f16`, superficie `#171a24`, primario `#ff5a76`, secundario aqua `#35d0ba`, estrella `#ffc857`.
+- Tema **oscuro por identidad** (`dark.always`), no por `prefers-color-scheme`.
+- Estados: skeleton con shimmer · vacío · error con **Reintentar ≥44 px** · fin "Has llegado al final · N de 22 515 títulos".
+- Copy del fallo según tipo (`lib/fallos.ts`): red / servidor (5xx) / límite (429) / cliente (4xx) / desconocido (error propio).
+- Accesibilidad: `aria-live` en el contador, `aria-busy` en el skeleton, `role="alert"` en errores, `alt` descriptivo, `:focus-visible` en la tarjeta enlazada, `aria-pressed` en la estrella.
+- Iconos registrados **una sola vez** en `main.ts` con `addIcons()`: `star`, `heart`, `heart-outline`, `cloud-offline-outline`, `search-outline`, `checkmark-done-outline`, `close-circle`, `calendar-outline`, `albums-outline`. **Si añades un icono, regístralo ahí** o no se verá. (`ion-back-button` trae el suyo.)
+- Presupuesto de estilos: `anyComponentStyle` 3 kB warning / 6 kB error. Los bloques compartidos viven en `src/global.scss` (`.cabecera`, `.marca`, `.pulso`, `.fuente`, `.aviso`, `.reintentar-inline`, `.ir-favoritos`) justo para no inflar los `.scss` de página.
 
 ---
 
-## 5. Tests: 18 en 3 archivos
+## 5. Tests: **59 en 7 archivos**
 
-| Archivo | Qué cubre |
-|---|---|
-| `services/anime.service.spec.ts` (4) | params de Kitsu + `filter[text]`, normalización JSON:API, `hasMore` por `count` y página vacía, clasificación red/servidor/429/cliente |
-| `pages/home/home.page.spec.ts` (13) | primera página, concat sin duplicados, **duplicados dentro de una misma página**, error sin perder lista + reintento mismo offset, fin por `count` + `disabled`, vacío ≠ error, página vacía corta, guard anti-simultáneas, `complete()` incluso con error, offset por lo recibido, freno si la API repite página + `finSinProgreso`, pausa del scroll tras error, mensajes por tipo de fallo |
-| `app.component.spec.ts` (1) | smoke del shell (starter) |
+| Archivo | Tests | Qué cubre |
+|---|---|---|
+| `pages/home/home.page.spec.ts` | 23 | primera página, concat sin duplicados, duplicados intra-página, error sin perder lista + reintento mismo offset, fin por `count` + `disabled`, vacío ≠ error, página vacía corta, guard anti-simultáneas, `complete()` incluso con error, offset por lo recibido, freno si la API repite página, pausa del scroll tras error, mensajes por tipo de fallo, **R3**: reinicio total, respuesta vieja descartada, solo gana la última búsqueda, vacío de búsqueda, paginar tras buscar, `debounce === 400` y `trim()`, `limpiar()`; **R6**: estrella y coherencia del reinicio |
+| `pages/detail/detail.page.spec.ts` | 9 | ficha ok con sinopsis, 404 / id vacío, error de red con reintento, recarga al cambiar de id, respuesta vieja descartada, favorito |
+| `pages/favorites/favorites.page.spec.ts` | 5 | carga por ids, vacío, error con reintento, fallos parciales, quitar favorito |
+| `services/anime.service.spec.ts` | 7 | params de Kitsu + `filter[text]`, normalización JSON:API, `hasMore` por `count`, clasificación red/servidor/429/cliente, `getAnimeById` (+sinopsis), 404 / 200 sin recurso |
+| `services/favorites.service.spec.ts` | 9 | `init()` idempotente, unión con toggles en vuelo, toggle alta/baja, persistencia, reversión si falla la escritura, JSON corrupto, ids no string |
+| `lib/fallos.spec.ts` | 5 | mensajes y etiquetas por tipo, `aFallo()` defensivo, `esNoEncontrado()` |
+| `app.component.spec.ts` | 1 | smoke del shell |
 
-Comandos verdes (22/10):
+Comandos verdes (25/10, cierre de G2):
 
 ```bash
 npm run build                          # 0 errores · 0 warnings
 npx tsc -p tsconfig.app.json --noEmit  # 0
 npx tsc -p tsconfig.spec.json --noEmit # 0
 npm run lint                           # All files pass linting
-npm test -- --watch=false              # 3 archivos · 18/18
+npm test -- --watch=false              # 7 archivos · 59/59
 ```
 
 ---
 
-## 6. Qué se corrigió en el pulido (y por qué)
+## 6. Trampas que ya costaron tiempo (no repetirlas)
 
-Los 5 puntos del `revisor-rubrica` original (74/75) más 2 hallazgos de la segunda pasada:
-
-1. **Offset por `items.length`** — con una página corta no final, avanzar `pageSize` se saltaba títulos. Test: página de 3 → siguiente petición con `offset=3`.
-2. **`[disabled]` incluye `error()`** — se probó a quitarlo (para que el scroll siguiera vivo tras un fallo) y el revisor demostró un **bucle de reintentos**: `complete()` oculta el spinner → el contenido encoge → salta un `scroll` → nueva petición → falla → … Solución final: pausar el scroll tras el fallo y reintentar con el botón inline (explícito). Test discriminante incluido.
-3. **Copy del error** — panel "No pudimos cargar el catálogo" + causa real; el aviso inline añade "Tu lista sigue aquí." (solo se muestra con lista cargada).
-4. **`catchError` con `FalloApi`** — distingue red (0), 429, 5xx y 4xx sin tocar `PageResult`. La UI elige el mensaje.
-5. **URL en tests desde `environment.apiUrl`**.
-6. **Freno de progreso** — si Kitsu repitiera una página (solo duplicados), `hasMore=false` en vez de encadenar peticiones hasta `meta.count`.
-7. **`total` solo se sobrescribe si `> 0`** y se eliminó el `constructor() {}` vacío del shell.
-8. **Tercera pasada (nits del revisor):** deduplicación también **dentro** de una misma página (protege `track anime.id` del `@for`, NG0955); `aFallo()` valida lo capturado en vez de castear a ciegas (un error inesperado cae en `servidor`); copy honesto del fin cuando la API deja de devolver títulos nuevos (`finSinProgreso`); `resumen` prioriza `items` para no mostrar "Conectando…" con tarjetas en pantalla.
-
-Resultado de la última verificación independiente: `verificador-build` → **BUILD: verde**, 0 errores, 0 warnings, 8/8 invariantes de R2 OK. `revisor-rubrica` → **75/75** sobre lo evaluable (R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10), sin bloqueantes ni medios.
+1. **`fixture.whenStable()` solo avanza un microtask.** Las páginas con carga inicial necesitan `asentar()` (`await new Promise(r => setTimeout(r))`) en los specs; si no, `expectOne` no encuentra la petición.
+2. **`reiniciar()` con carga en vuelo.** Ionic pone `isLoading=false` en `disabledChanged()` **sin** resetear `didFire`; vaciar `items` a mitad de carga deja el `ion-infinite-scroll` **mudo**. Solución: `await this.enVuelo` antes de vaciar.
+3. **`complete()` dentro del guard de generación** es intencional: cerrar el spinner de una generación vieja apagaría el de la carga nueva.
+4. **`[disabled]` incluye `fallo()`** (anti-bucle): `complete()` oculta el spinner → el contenido encoge → salta `scroll` → nueva petición → falla → … Cualquier reintento debe limpiar `fallo` antes de pedir (lo hace `cargar()`).
+5. **`effect()` en detalle, no `ngOnInit`**: la vista se reutiliza entre fichas.
+6. **Favoritos = ids**, nunca objetos; las fichas se piden a la API.
+7. **`Preferences` en tests** se simula con `vi.mock('@capacitor/preferences', …)`.
+8. **Presupuesto SCSS**: `detail.page.scss` se recortó dos veces para no pasar de 3 kB (fuera el `@media` de la rejilla del hero y el `transform: scale`). Un estilo nuevo puede volver a disparar el warning.
+9. **Iconos** → `addIcons()` en `main.ts`.
+10. **Lint/estilo del repo**: standalone con `imports: []`, `OnPush`, signals, `@if/@for/@switch`, prefijo `app`, sufijos `Page`/`Component`, `strictTemplates`, sin `any`.
 
 ---
 
-## 7. Trampas para R3–R6 (leer antes de escribir)
+## 7. Lo que queda (fase H, 🟦 MiMo)
 
-1. **`reiniciar()` mientras hay carga en vuelo** — Ionic (`infinite-scroll.tsx`) pone `isLoading=false` en `disabledChanged()` **sin** resetear `didFire`; si vacías `items` a mitad de una carga disparada por scroll, el `complete()` posterior sale por el early-return y el scroll **no vuelve a disparar**. R3 va a llamar a `reiniciar()` con la lista llena: espera la petición en vuelo (o vacía `items` después de la respuesta).
-2. **`reiniciar()`** ya limpia `ids`, `offset`, `items`, `total`, `hasMore` y `fallo`, y recarga. Es el punto de entrada de R3, pero necesita `query` como parámetro en vez del `''` fijo de `cargar()`.
-3. **429 = `'limite'`** — con búsqueda (`debounce="400"`) te puedes acercar al límite de 3 req/s de Kitsu. No bajes el debounce y usa el mensaje ya existente.
-4. **`[disabled]` incluye `error()`** — cualquier reintento debe limpiar `fallo` **antes** de pedir (lo hace `cargar()` al inicio). No lo quites sin probar el bucle.
-5. **Deduplicación** — el `Set` es del ciclo de la lista; R3 debe limpiarlo al reiniciar (ya lo hace `reiniciar()`), no al paginar.
-6. **`AnimeService.getAnime(query, offset)`** — el parámetro `query` ya existe; no dupliques servicio para R3.
-7. **R4 detalle** — no existe `getAnimeById`. Añádelo en el servicio (misma normalización `toAnime`), no en la página.
-8. **R6 favoritos** — `@capacitor/preferences` ya está instalado (8.0.1). Guárdense **ids**, no objetos.
-9. **Iconos nuevos** → `addIcons()` en `main.ts`.
-10. **Presupuesto de estilos** — `angular.json` tiene `anyComponentStyle` 3 kB warning / 6 kB error. `home.page.scss` está en ~2.8 kB: si R3 añade searchbar, mide y divide estilos.
-11. **Lint/estilo del repo** — standalone con `imports: []`, `OnPush`, signals, control flow `@if/@for/@switch`; prefijo `app`; sufijos `Page`/`Component`; `strictTemplates`; sin `any`.
-
----
-
-## 8. Siguiente tanda sugerida (no empezada)
-
-| Requisito | Punto de entrada | Qué falta |
+| # | Tarea | Nota |
 |---|---|---|
-| **R3 búsqueda** | `HomePage.reiniciar()` + `AnimeService.getAnime(query, 0)` | `ion-searchbar debounce="400"`, query en el estado, reset de lista/paginación/ids, descartar respuestas viejas |
-| **R4 detalle** | ruta `anime/:id` (lazy) + `getAnimeById` | página detalle con `withComponentInputBinding()`, `ion-back-button`, estados |
-| **R6 favoritos** | `@capacitor/preferences` | `favorites.service.ts` con `signal` de ids, página `favoritos`, toggle en la tarjeta o el detalle |
+| 1 | `verificador-build` + `revisor-rubrica` sobre el estado final | 4 comandos + puntuación R1–R7 |
+| 2 | **APK por terminal** | `npm run build` → `npx cap sync android` → `android\gradlew.bat assembleDebug`. El APK actual es **anterior** a R3–R6 |
+| 3 | `auditor-muerto` + remediación de `AUDITORIA-DEPS.md` | 5 vulnerabilidades del starter (1 high), build-time |
+| 4 | `README.md` | Hoy dice R4/R5/R6 ⏳, "9/9 tests" y un `git clone` de ejemplo. Lo real: **R1–R7 ✅ · 59 tests en 7 archivos** · remote `JimSul16/API-Explorer` · offset por lo recibido · faltan capturas/video |
+| 5 | §11 de `PLAN.md` + push final | §11 ya está al día hasta G2 |
 
 ---
 
-## 9. Zonas y cierre (acordado con MiMo)
+## 8. Zonas y cierre (acordado con MiMo)
 
 - 🟩 DeepSeek: `src/**`. 🟦 MiMo: raíz, configs, `android/`, `README.md`, `.git/` remoto.
-- Antes de cada commit: `npm run build` + `tsc` + `lint` + `npm test` en verde.
-- Al cerrar: actualizar §11 de `PLAN.md`, bloque en `HANDOFF.md` y commit propio. No hacer `git init` (repo existente, remoto en GitHub).
-- El APK actual corresponde al estado R1+R2+R7; **MiMo lo regenera** tras R3–R6.
-
----
-
-## 10. Pendientes conocidos (no bloquean)
-
-- `README.md` puede seguir mencionando 9/9 tests y 74/75: lo actual es **17/17** (zona MiMo).
-- Re-puntuación final cerrada: **75/75** (R1 20 · R2 25 · R7 20 · estados 10). Quedan 6 nits documentados por el revisor, ninguno afecta requisitos: guard que apaga el spinner antes de tiempo, token de generación para `reiniciar()` con carga en vuelo (R3), test que sustituye el `@ViewChild` por un stub, etc.
-- Warning histórico del APK: tema Android `Theme.AppCompat.DayNight` con app forzada en oscuro → revisar status bar en dispositivo (zona MiMo).
+- Antes de cada commit: `npm run build` + `tsc` (app y spec) + `lint` + `npm test` en verde.
+- Al cerrar: bloque en `HANDOFF.md`, fila en §11 de `PLAN.md` y commit propio. **No `git init`** (repo existente con remoto en GitHub).
+- Nunca `git add` de archivos de MiMo (`android/**`, `README.md`, `AUDITORIA-DEPS.md`, raíz).
