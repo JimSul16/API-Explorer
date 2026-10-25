@@ -1,0 +1,228 @@
+.fondo {
+  --background: var(--app-fondo);
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.ficha {
+  padding: 16px 16px 32px;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 16px;
+  border-radius: 20px;
+  background: var(--app-superficie);
+  border: 1px solid var(--app-borde);
+  box-shadow: var(--app-sombra);
+}
+
+.hero-fondo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.18;
+  filter: blur(18px) saturate(1.2);
+  transform: scale(1.15);
+  pointer-events: none;
+}
+
+.portada,
+.titular,
+.nota {
+  position: relative;
+}
+
+.portada {
+  overflow: hidden;
+  width: 148px;
+  aspect-ratio: 2 / 3;
+  border-radius: 14px;
+  background: linear-gradient(
+    150deg,
+    hsl(var(--matiz) 46% 26%),
+    hsl(calc(var(--matiz) + 40) 52% 14%)
+  );
+  border: 1px solid var(--app-borde);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.monograma {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgb(255 255 255 / 0.86);
+}
+
+.titular {
+  margin-top: 14px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ion-color-secondary);
+}
+
+.titulo {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--app-texto-suave);
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  ion-icon {
+    font-size: 15px;
+    color: var(--ion-color-secondary);
+  }
+}
+
+.nota {
+  position: absolute;
+  top: 18px;
+  right: 16px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--app-estrella);
+  background: rgb(13 15 22 / 0.82);
+  border: 1px solid rgb(255 200 87 / 0.45);
+
+  ion-icon {
+    align-self: center;
+    font-size: 14px;
+  }
+
+  strong {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  span {
+    color: var(--app-texto-suave);
+  }
+}
+
+.sinopsis {
+  margin-top: 20px;
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--app-texto-suave);
+  }
+
+  p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.62;
+    color: var(--ion-text-color);
+    white-space: pre-line;
+  }
+}
+
+/* Esqueleto de carga con la misma forma que la ficha final */
+.esqueleto-portada {
+  position: relative;
+  height: 210px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--app-superficie);
+  border: 1px solid var(--app-borde);
+}
+
+.sk-hero {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.35;
+}
+
+.sk-poster {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  width: 110px;
+  height: 165px;
+  border-radius: 14px;
+}
+
+.sk-titulo {
+  width: 70%;
+  height: 26px;
+  margin: 18px 0 10px;
+  border-radius: 8px;
+}
+
+.sk-chips {
+  width: 46%;
+  height: 16px;
+  margin-bottom: 22px;
+  border-radius: 6px;
+}
+
+.sk-parrafo {
+  height: 14px;
+  margin: 0 0 10px;
+  border-radius: 6px;
+}
+
+@media (min-width: 560px) {
+  .hero {
+    display: grid;
+    grid-template-columns: 148px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .titular {
+    margin-top: 0;
+  }
+
+  .nota {
+    position: static;
+    grid-column: 2;
+    justify-self: start;
+    margin-top: 4px;
+  }
+}

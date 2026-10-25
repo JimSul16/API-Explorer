@@ -12,13 +12,13 @@
 | **Alcance del plan** | **R1 + R2 + estructura R7** (fases A–D + F); R3–R6 y APK = etapa posterior (PLAN.md §4.2) |
 | **Modo** | **Paralelo** (PLAN.md §3.4): 🟦 MiMo = raíz/config · 🟩 DeepSeek = `src/**` |
 | **SCAFFOLD** | ✅ **listo** (22/10 20:12) |
-| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ · P ✅ · **E ✅ (R3 cerrada 25/10)** · G1 ⏳ · G2 ⏳ · H ⏳ |
-| Orden | **PASO 1** 🟩 DeepSeek: **E (R3) ✅** → **G1 (R4 + R5)** → **G2 (R6)** · **PASO 2** 🟦 MiMo: **H (verificación + APK + auditoría + README + push)** |
-| Responsable | 🟩 DeepSeek (`deepseek-codigo`) sigue con **G1** · 🟦 MiMo en espera hasta que HANDOFF diga `FASE-G: commiteado` |
-| **BUILD** | ✅ **verde, 0 warnings** — verificado 25/10 tras R3: `npm run build` (0 errores/0 warnings) · `tsc` app+spec 0 · `npm run lint` pass · `npm test` **25/25** |
-| **Rúbrica (hoy)** | R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10 · **R3 15/15** → meta restante: R4 (10) + R5 (10) + R6 (10) + README/GitHub (10) |
-| Commits (10) | `1269883` fase-B · `1fb11ff` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido · `934c977` REGISTRO-MIMO · `7232eb2` pulido-revisor + REGISTRO-DEEPSEEK · `4b158c2` plan §13 · `fase-E-R3` (R3) · remote `origin` = GitHub `JimSul16/API-Explorer` |
-| **🚦 Señal para DeepSeek** | 🟢 **`R3 CERRADA`** (commit `fase-E-R3`) — sigue con **G1** (R4 detalle + R5 estados), mismo agente `deepseek-codigo` + skill `ui-ionic-design` |
+| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ · P ✅ · **E ✅ (R3)** · **G1 ✅ (R4+R5)** · G2 ⏳ · H ⏳ |
+| Orden | **PASO 1** 🟩 DeepSeek: **E (R3) ✅** → **G1 (R4 + R5) ✅** → **G2 (R6)** · **PASO 2** 🟦 MiMo: **H (verificación + APK + auditoría + README + push)** |
+| Responsable | 🟩 DeepSeek (`deepseek-codigo`) sigue con **G2** · 🟦 MiMo en espera hasta que HANDOFF diga `FASE-G: commiteado` |
+| **BUILD** | ✅ **verde, 0 warnings** — tras G1: `npm run build` (0 errores/0 warnings) · `tsc` app+spec 0 · `npm run lint` pass · `npm test` **36/36** |
+| **Rúbrica (hoy)** | R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10 · **R3 15/15** · **R4 10/10 · R5 10/10** → meta restante: R6 (10) + README/GitHub (10) |
+| Commits (12) | `1269883` fase-B · `1fb11ff` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido · `934c977` REGISTRO-MIMO · `7232eb2` pulido-revisor + REGISTRO-DEEPSEEK · `4b158c2` plan §13 · `fase-E-R3` (R3) · `fase-G-R4R5` (R4+R5) · remote `origin` = GitHub `JimSul16/API-Explorer` |
+| **🚦 Señal para DeepSeek** | 🟢 **`R4+R5 CERRADAS`** (commit `fase-G-R4R5`) — sigue con **G2** (R6 favoritos), mismo agente `deepseek-codigo` |
 | **🚦 Señal para MiMo** | 🔴 en espera — arranca cuando el bloque de DeepSeek diga **`FASE-G: commiteado`** |
 | **📘 Registros de continuidad** | `REGISTRO-MIMO.md` (🟦 MiMo: todo lo hecho + comandos + lo que falta) · `REGISTRO-DEEPSEEK.md` (🟩 DeepSeek: código e interfaz) → base del **nuevo plan en nueva sesión** (R3–R6) |
 | Archivos tocados | raíz + configs (MiMo) · `src/**` completo (DeepSeek) |
@@ -257,6 +257,44 @@ npm test -- --watch=false              → 3 archivos · 25/25 tests
 `verificador-build` (independiente): **BUILD: verde**, 0 errores / 0 warnings, 7/7 invariantes de R3 OK.
 
 **Errores conocidos:** ninguno. Aviso: `android/app/src/main/res/values/{styles.xml,colors.xml}` aparecen tocados en `git status` — **zona MiMo**, no los toqué ni los commiteo.
+
+---
+
+## Handoff #7 — de 🟩 DeepSeek a 🟩 DeepSeek (G1 cerrada) ✅ `FASE-G1: commiteado`
+
+**Fase completada:** **G1 — R4 (detalle `anime/:id`) + R5 (estados con reintento)**.
+
+**Qué quedó hecho (zona DeepSeek: `src/**`)**
+- [x] `app.routes.ts` → ruta **lazy** `anime/:id` (el `id` entra por `input()` gracias a `withComponentInputBinding()` de `main.ts`).
+- [x] `AnimeService.getAnimeById(id)` → `GET /anime/{id}?fields[anime]=…,synopsis`; **reutiliza `toAnime()`** (una sola normalización) y clasifica el fallo igual que el listado. Un **200 sin recurso** se traduce a `{tipo:'cliente', status:404}`.
+- [x] `Anime` gana `sinopsis: string | null` (el listado la deja en `null` porque no la pide; el detalle sí).
+- [x] **`pages/detail/`** → hero con la portada de fondo desenfocada + póster 2:3 (monograma con matiz si falla la imagen), tipo, título, año, episodios, nota ★ sobre 10 y sinopsis con `white-space: pre-line`. `ion-back-button defaultHref="/home"`.
+- [x] **R5 en el detalle**: `estado()` = `cargando` (skeleton con la forma de la ficha) · `noEncontrado` (404 o id vacío, "Ir al catálogo") · `error` (red/5xx/429 con **Reintentar** del mismo id) · `listo`. Los tres paneles son el **`app-panel-estado`** compartido, no copias.
+- [x] **Recarga al cambiar de id**: `effect()` sobre `input('id')` + **token de generación** (misma idea que R3) para que una respuesta lenta de la ficha anterior no pise la nueva. `pedido` evita repetir la petición si el input se reasigna igual.
+- [x] Tarjeta del catálogo → `<a class="enlace" [routerLink]="['/anime', anime().id]">` con `aria-label` y `:focus-visible` (R4: se navega tocando la tarjeta). `ion-router-outlet` cachea la vista de home, así que **al volver se conserva el scroll**.
+- [x] Nuevos helpers compartidos: `lib/fallos.ts` (`mensajeDeFallo`, `etiquetaDeFallo`, `aFallo`, `esNoEncontrado`) y `lib/portada.ts` (`inicialesDe`, `matizDe`, `notaDe`) → home y tarjeta dejaron de duplicar la lógica de mensajes y monograma.
+- [x] `main.ts` → `addIcons({ calendarOutline, albumsOutline })` (los de la ficha).
+- [x] **11 tests nuevos**: `detail.page.spec.ts` (8) y `anime.service.spec.ts` (+3: `getAnimeById` con sinopsis, 404/200 sin recurso, red caída) → **36/36** en 4 archivos.
+
+**Decisiones a respetar**
+- La ficha **no** pide `page[...]`: es un recurso. `getAnimeById` es la única vía.
+- `esNoEncontrado()` es la única regla de "404 ≠ caída": no comparéis `status` a mano en las páginas.
+- Los textos de fallo viven en `lib/fallos.ts`; si hay que cambiar el copy, se cambia una vez.
+- `effect()` para el id de ruta, **no** `ngOnInit`: la vista se reutiliza entre fichas.
+
+**Siguiente:** **G2 — R6 favoritos**. Plan: `services/favorites.service.ts` (Preferences v8, **solo ids** en `signal`, `init()` + `toggle()` + `esFavorito(id)`), ★ en la tarjeta (botón fuera del `<a>`, hermano absoluto) y en la ficha, `pages/favorites/` + ruta `favoritos`, `init()` al arrancar (APP_INITIALIZER o en `AppComponent`), iconos `heart`/`heartOutline` en `main.ts`, tests con `Preferences` simulado. Commit `fase-G-R6` → `revisor-rubrica` → señal `FASE-G: commiteado`.
+
+**BUILD**
+```
+npm run build                          → verde, 0 errores, 0 warnings (5 s) · chunk detail-page 10.17 kB
+npx tsc -p tsconfig.app.json --noEmit  → 0 errores
+npx tsc -p tsconfig.spec.json --noEmit → 0 errores
+npm run lint                           → All files pass linting
+npm test -- --watch=false              → 4 archivos · 36/36 tests
+```
+`verificador-build` (independiente): **BUILD: verde**, 0/0, 10/10 invariantes de R4/R5 OK.
+
+**Errores conocidos:** ninguno. (`android/**` y `AUDITORIA-DEPS.md` siguen siendo de MiMo: no los toco.)
 
 ---
 

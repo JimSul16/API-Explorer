@@ -18,6 +18,7 @@ interface KitsuAttributes {
   averageRating?: string | null;
   episodeCount?: number | null;
   subtype?: string | null;
+  synopsis?: string | null;
 }
 
 interface KitsuResource {
@@ -28,6 +29,10 @@ interface KitsuResource {
 interface KitsuListResponse {
   data?: KitsuResource[];
   meta?: { count?: number };
+}
+
+interface KitsuOneResponse {
+  data?: KitsuResource | null;
 }
 
 /**
@@ -44,6 +49,8 @@ export class AnimeService {
   private readonly base = environment.apiUrl;
   private readonly fields =
     'canonicalTitle,posterImage,startDate,averageRating,episodeCount,subtype';
+  /** El detalle pide además la sinopsis: el listado no la necesita y pesa. */
+  private readonly fieldsDetalle = `${this.fields},synopsis`;
   private readonly headers = { Accept: 'application/vnd.api+json' };
 
   private static readonly TIPOS: Record<string, string> = {
@@ -89,6 +96,31 @@ export class AnimeService {
   }
 
   /**
+   * Un título por id (R4). Mismo `toAnime` que el listado —una sola forma de
+   * normalizar— más la sinopsis, que solo tiene sentido en el detalle.
+   */
+  getAnimeById(id: string): Observable<Anime> {
+    const params = new HttpParams().set('fields[anime]', this.fieldsDetalle);
+    return this.http
+      .get<KitsuOneResponse>(`${this.base}/${encodeURIComponent(id)}`, {
+        params,
+        headers: this.headers,
+      })
+      .pipe(
+        map((r) => {
+          if (!r.data) {
+            // 200 sin recurso: se trata como "no existe" y la página muestra su aviso.
+            throw { tipo: 'cliente', status: 404 } satisfies FalloApi;
+          }
+          return this.toAnime(r.data);
+        }),
+        catchError((error: unknown) =>
+          throwError(() => (error instanceof HttpErrorResponse ? this.clasificar(error) : error)),
+        ),
+      );
+  }
+
+  /**
    * Red caída (sin respuesta) ≠ API rota (5xx/429) ≠ petición rechazada (4xx).
    * La página decide el mensaje; el contrato de `PageResult` no cambia.
    */
@@ -122,6 +154,7 @@ export class AnimeService {
       rating: a.averageRating && Number.isFinite(rating) ? rating : null,
       episodios: a.episodeCount ?? null,
       tipo: this.toTipo(a.subtype),
+      sinopsis: a.synopsis?.trim() || null,
     };
   }
 

@@ -7,6 +7,8 @@ export interface Anime {
   rating: number | null;
   episodios: number | null;
   tipo: string;
+  /** Solo llega en el detalle (`getAnimeById`); en el listado va `null`. */
+  sinopsis: string | null;
 }
 
 /** Resultado de una página de Kitsu + fin real de la paginación. */

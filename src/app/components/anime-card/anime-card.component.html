@@ -1,34 +1,40 @@
 <article class="tarjeta" [style.--matiz]="matiz()">
-  <div class="portada">
-    @if (verPortada()) {
-      <img
-        [src]="anime().portada"
-        [alt]="'Portada de ' + anime().titulo"
-        loading="lazy"
-        (error)="portadaRota.set(true)"
-      />
-    } @else {
-      <span class="monograma" aria-hidden="true">{{ iniciales() }}</span>
-    }
-
-    @if (anime().rating !== null) {
-      <span class="nota" [attr.aria-label]="'Nota ' + nota() + ' sobre 10'">
-        <ion-icon name="star" aria-hidden="true"></ion-icon>
-        {{ nota() }}
-      </span>
-    }
-  </div>
-
-  <div class="info">
-    <h2 class="titulo">{{ anime().titulo }}</h2>
-    <p class="meta">
-      <span class="anio">{{ anime().anio }}</span>
-      <span class="sep" aria-hidden="true">·</span>
-      <span class="tipo">{{ anime().tipo }}</span>
-      @if (anime().episodios !== null) {
-        <span class="sep" aria-hidden="true">·</span>
-        <span class="eps">{{ anime().episodios }} ep.</span>
+  <a
+    class="enlace"
+    [routerLink]="['/anime', anime().id]"
+    [attr.aria-label]="'Ver la ficha de ' + anime().titulo"
+  >
+    <div class="portada">
+      @if (verPortada()) {
+        <img
+          [src]="anime().portada"
+          [alt]="'Portada de ' + anime().titulo"
+          loading="lazy"
+          (error)="portadaRota.set(true)"
+        />
+      } @else {
+        <span class="monograma" aria-hidden="true">{{ iniciales() }}</span>
       }
-    </p>
-  </div>
+
+      @if (anime().rating !== null) {
+        <span class="nota" [attr.aria-label]="'Nota ' + nota() + ' sobre 10'">
+          <ion-icon name="star" aria-hidden="true"></ion-icon>
+          {{ nota() }}
+        </span>
+      }
+    </div>
+
+    <div class="info">
+      <h2 class="titulo">{{ anime().titulo }}</h2>
+      <p class="meta">
+        <span class="anio">{{ anime().anio }}</span>
+        <span class="sep" aria-hidden="true">·</span>
+        <span class="tipo">{{ anime().tipo }}</span>
+        @if (anime().episodios !== null) {
+          <span class="sep" aria-hidden="true">·</span>
+          <span class="eps">{{ anime().episodios }} ep.</span>
+        }
+      </p>
+    </div>
+  </a>
 </article>

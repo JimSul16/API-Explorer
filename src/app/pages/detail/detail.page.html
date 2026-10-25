@@ -1,0 +1,109 @@
+<ion-header class="cabecera">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" text="" aria-label="Volver al catálogo"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ resumenCabecera() }}</ion-title>
+    <span slot="end" class="fuente">Kitsu</span>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="fondo">
+  @switch (estado()) {
+    @case ('cargando') {
+      <div class="ficha" aria-busy="true" aria-label="Cargando ficha del título">
+        <div class="esqueleto-portada">
+          <ion-skeleton-text [animated]="true" class="sk-hero"></ion-skeleton-text>
+          <ion-skeleton-text [animated]="true" class="sk-poster"></ion-skeleton-text>
+        </div>
+        <ion-skeleton-text [animated]="true" class="sk-titulo"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" class="sk-chips"></ion-skeleton-text>
+        @for (linea of [1, 2, 3, 4]; track linea) {
+          <ion-skeleton-text [animated]="true" class="sk-parrafo"></ion-skeleton-text>
+        }
+      </div>
+    }
+
+    @case ('noEncontrado') {
+      <app-panel-estado
+        icono="search-outline"
+        titulo="No encontramos ese título"
+        mensaje="El id no existe en Kitsu o el enlace viene incompleto. Vuelve al catálogo y elige uno de la lista."
+        accion="Ir al catálogo"
+        (accionClick)="irAlCatalogo()"
+      />
+    }
+
+    @case ('error') {
+      <app-panel-estado
+        rol="alert"
+        icono="cloud-offline-outline"
+        titulo="No pudimos cargar la ficha"
+        [mensaje]="mensajeFallo()"
+        accion="Reintentar"
+        (accionClick)="reintentar()"
+      />
+    }
+
+    @default {
+      <article class="ficha" [style.--matiz]="matiz()">
+        <header class="hero">
+          @if (verPortada()) {
+            <img
+              class="hero-fondo"
+              [src]="anime()!.portada"
+              alt=""
+              aria-hidden="true"
+              (error)="portadaRota.set(true)"
+            />
+          }
+
+          <div class="portada">
+            @if (verPortada()) {
+              <img
+                [src]="anime()!.portada"
+                [alt]="'Portada de ' + anime()!.titulo"
+                (error)="portadaRota.set(true)"
+              />
+            } @else {
+              <span class="monograma" aria-hidden="true">{{ iniciales() }}</span>
+            }
+          </div>
+
+          <div class="titular">
+            <p class="eyebrow">{{ anime()!.tipo }}</p>
+            <h1 class="titulo">{{ anime()!.titulo }}</h1>
+
+            <ul class="datos">
+              <li>
+                <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+                {{ anime()!.anio }}
+              </li>
+              <li>
+                <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
+                @if (anime()!.episodios !== null) {
+                  {{ anime()!.episodios }} episodios
+                } @else {
+                  Sin episodios registrados
+                }
+              </li>
+            </ul>
+          </div>
+
+          @if (anime()!.rating !== null) {
+            <p class="nota" [attr.aria-label]="'Nota ' + nota() + ' sobre 10'">
+              <ion-icon name="star" aria-hidden="true"></ion-icon>
+              <strong>{{ nota() }}</strong>
+              <span>/ 10</span>
+            </p>
+          }
+        </header>
+
+        <section class="sinopsis">
+          <h2>Sinopsis</h2>
+          <p>{{ sinopsis() }}</p>
+        </section>
+      </article>
+    }
+  }
+</ion-content>

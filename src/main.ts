@@ -4,6 +4,8 @@ import { RouteReuseStrategy, provideRouter, withComponentInputBinding, withPrelo
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
+  albumsOutline,
+  calendarOutline,
   checkmarkDoneOutline,
   closeCircle,
   cloudOfflineOutline,
@@ -15,7 +17,15 @@ import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 
 // Los iconos se registran una sola vez: ion-icon no descarga nada en runtime.
-addIcons({ star, cloudOfflineOutline, searchOutline, checkmarkDoneOutline, closeCircle });
+addIcons({
+  star,
+  cloudOfflineOutline,
+  searchOutline,
+  checkmarkDoneOutline,
+  closeCircle,
+  calendarOutline,
+  albumsOutline,
+});
 
 bootstrapApplication(AppComponent, {
   providers: [

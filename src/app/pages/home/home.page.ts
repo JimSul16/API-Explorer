@@ -13,6 +13,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { AnimeCardComponent } from '../../components/anime-card/anime-card.component';
 import { PanelEstadoComponent } from '../../components/panel-estado/panel-estado.component';
+import { aFallo, etiquetaDeFallo, mensajeDeFallo } from '../../lib/fallos';
 import { Anime, FalloApi } from '../../models/anime.model';
 import { AnimeService } from '../../services/anime.service';
 
@@ -79,36 +80,11 @@ export class HomePage implements OnInit {
   /** Causa del fallo en lenguaje humano (la del panel y la del aviso inline). */
   readonly mensajeFallo = computed(() => {
     const fallo = this.fallo();
-    if (!fallo) {
-      return '';
-    }
-    switch (fallo.tipo) {
-      case 'red':
-        return 'No hay conexión con la API. Revisa tu red e inténtalo de nuevo.';
-      case 'limite':
-        return 'Demasiadas peticiones seguidas. Espera unos segundos y reintenta.';
-      case 'servidor':
-        return `Kitsu está fallando (error ${fallo.status}). Espera un momento y reintenta.`;
-      case 'cliente':
-        return `La API rechazó la petición (error ${fallo.status}). Reintenta en unos segundos.`;
-    }
+    return fallo ? mensajeDeFallo(fallo) : '';
   });
 
   /** Etiqueta corta para la cabecera, alineada con el tipo de fallo. */
-  private readonly etiquetaFallo = computed(() => {
-    switch (this.fallo()?.tipo) {
-      case 'red':
-        return 'Sin conexión con la API';
-      case 'limite':
-        return 'Demasiadas peticiones';
-      case 'servidor':
-        return 'La API respondió con error';
-      case 'cliente':
-        return 'Petición rechazada por la API';
-      default:
-        return 'Error al cargar el catálogo';
-    }
-  });
+  private readonly etiquetaFallo = computed(() => etiquetaDeFallo(this.fallo()));
 
   /** Texto de cabecera que nunca contradice al estado visible. */
   readonly resumen = computed(() => {
@@ -267,7 +243,7 @@ export class HomePage implements OnInit {
         return; // el fallo de una búsqueda anterior no ensucia la actual
       }
       // El offset no avanza: el reintento pide exactamente la misma página.
-      this.fallo.set(this.aFallo(motivo));
+      this.fallo.set(aFallo(motivo));
     } finally {
       if (gen === this.generacion) {
         this.cargando.set(false);
@@ -283,13 +259,5 @@ export class HomePage implements OnInit {
       return;
     }
     await this.reiniciar();
-  }
-
-  /** Normaliza lo lanzado por el servicio; un error inesperado no deja el panel vacío. */
-  private aFallo(motivo: unknown): FalloApi {
-    if (typeof motivo === 'object' && motivo !== null && 'tipo' in motivo && 'status' in motivo) {
-      return motivo as FalloApi;
-    }
-    return { tipo: 'servidor', status: 0 };
   }
 }
