@@ -12,14 +12,14 @@
 | **Alcance del plan** | **R1 + R2 + estructura R7** (fases A–D + F); R3–R6 y APK = etapa posterior (PLAN.md §4.2) |
 | **Modo** | **Paralelo** (PLAN.md §3.4): 🟦 MiMo = raíz/config · 🟩 DeepSeek = `src/**` |
 | **SCAFFOLD** | ✅ **listo** (22/10 20:12) |
-| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ · P ✅ · **E ✅ (R3)** · **G1 ✅ (R4+R5)** · **G2 ✅ (R6)** → **R1–R7 implementados** · **H ⏳ (MiMo)** |
-| Orden | **PASO 1** 🟩 DeepSeek: **E ✅ → G1 ✅ → G2 ✅ (cerrado)** · **PASO 2** 🟦 MiMo: **H (verificación + APK + auditoría + README + push)** |
-| Responsable | 🟦 MiMo (`mimo-infra`) — el turno de DeepSeek está **terminado** |
+| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ · P ✅ · **E ✅ (R3)** · **G1 ✅ (R4+R5)** · **G2 ✅ (R6)** · **H ✅ (cierre)** → **R1–R7 + entrega completados** |
+| Orden | **PASO 1** 🟩 DeepSeek: **E ✅ → G1 ✅ → G2 ✅ (cerrado)** · **PASO 2** 🟦 MiMo: **H ✅ (cerrada 25/10)** |
+| Responsable | 🟦 MiMo (`mimo-infra`) — **plan §13 completo**; solo queda el trabajo manual de capturas/video |
 | **BUILD** | ✅ **verde, 0 warnings** — tras G2: `npm run build` (0/0) · `tsc` app+spec 0 · `npm run lint` pass · `npm test` **59/59** en 7 archivos |
 | **Rúbrica (hoy)** | R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10 · R3 15/15 · R4 10/10 · R5 10/10 · **R6 10/10** → resta **README/GitHub (10)** · `revisor-rubrica` estimó **89/100** antes del commit de R6 |
 | Commits (16) | `1269883` fase-B · `1fb11ff` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido · `934c977` REGISTRO-MIMO · `7232eb2` pulido-revisor + REGISTRO-DEEPSEEK · `4b158c2` plan §13 · `a1a423f` **fase-E-R3** (R3) · `417b3d1` **fase-G-R4R5** (R4+R5) · `29b2195` + `331be10` fase-H parcial (MiMo) · `f0998a4` **fase-G-R6** (R6) · `fc77b64` estilos compartidos · remote `origin` = GitHub `JimSul16/API-Explorer` |
 | **🚦 Señal para DeepSeek** | ✅ **`TURNO CERRADO`** — E (`fase-E-R3`) · G1 (`fase-G-R4R5`) · G2 (`fase-G-R6` + `fc77b64`) commiteados y pusheados. No hay más fases de código en el plan §13 |
-| **🚦 Señal para MiMo** | 🟢 **`FASE-G: commiteado (f0998a4)`** — R1–R7 completos y en verde; arranca la **fase H** (§13.3) |
+| **🚦 Señal para MiMo** | ✅ **`FASE-H: cerrada (25/10)`** — verificación, APK, auditoría y README hechos; ver **Handoff #9**. Único pendiente **manual**: capturas/video |
 | **📘 Registros de continuidad** | `REGISTRO-MIMO.md` (🟦 MiMo: todo lo hecho + comandos + lo que falta) · `REGISTRO-DEEPSEEK.md` (🟩 DeepSeek: código e interfaz) → base del **nuevo plan en nueva sesión** (R3–R6) |
 | Archivos tocados | raíz + configs (MiMo) · `src/**` completo (DeepSeek) |
 
@@ -338,6 +338,69 @@ npm test -- --watch=false              → 7 archivos · 59/59 tests
 **Rúbrica (`revisor-rubrica`, sobre el estado previo al commit): ≈ 89/100** — R1 19.5 · R2 24 · R3 14 · R4 9.5 · R5 10 · R6 9 · README 3. Su "bloqueante" era que R6 aún no estaba commiteado (queda resuelto con este commit) y sus hallazgos medios ya están corregidos; el punto flojo restante es el **README** (ítem de 10).
 
 **Errores conocidos:** ninguno funcional. `complete()` del infinite scroll se llama dentro de `gen === generacion` **a propósito**: cerrar el spinner de una generación vieja apagaría el de la carga nueva.
+
+---
+
+## Handoff #9 — de 🟦 MiMo ✅ FASE H CERRADA (plan §13 completo)
+
+**Fase completada:** **H — cierre y entrega final** (25/10/2026). Con esto **el plan §13 está terminado**:
+R1–R7 implementados, verificados, compilados y documentados.
+
+**1. Verificación (subagentes)**
+- `verificador-build` → **`BUILD: verde`**: `npm run build` 0 errores / 0 warnings · `tsc` app y spec 0 ·
+  `npm run lint` pass · `npm test -- --watch=false` → **59/59 en 7 archivos**. Bundle inicial 674,53 kB (159,40 kB gzip).
+- `revisor-rubrica` → **92/100** (R1 20 · R2 24 · R3 15 · R4 10 · R5 9,5 · R6 9,5 · README 4):
+  el código está a nivel de entrega; lo que restaba era **evidencia**, y eso es lo que resolví en H.
+  Con README y APK al día, su propia estimación sube a **~97-99**.
+
+**2. APK por terminal** ✅
+```
+npm run build → npx cap sync android → cd android → .\gradlew.bat assembleDebug
+→ BUILD SUCCESSFUL in 22s
+→ android\app\build\outputs\apk\debug\app-debug.apk = 4 653 669 B (4,44 MB) · 25/10/2026 12:53
+```
+Sustituye al de 4,16 MB del 22/10 (que era anterior a R3–R6 y ya no existía en disco).
+**Incluye la status bar corregida** (ver 3).
+
+**3. Status bar de Android** ✅ (mi zona)
+- Causa: la app **no definía colores** → heredaba `colorPrimaryDark = #303F9F` (azul de `@capacitor/android`)
+  sobre la interfaz medianoche `#0d0f16`. Era el "aviso histórico" de `REGISTRO-MIMO.md §10`.
+- Fix: nuevo `android/app/src/main/res/values/colors.xml` (paleta de la app) + `android:statusBarColor`,
+  `android:navigationBarColor` y `windowLightStatusBar/Light = false` en `AppTheme.NoActionBar`.
+
+**4. Auditoría de dependencias** ✅ — **`npm audit`: 5 → 0**
+- Informe completo en **`AUDITORIA-DEPS.md`** (478 paquetes, licencias sin GPL/AGPL, plan y ejecución).
+- `package.json`: `"overrides": { "vite": "^8.3.5", "uuid": "^11.1.1" }` + `"license": "MIT"`.
+- **No** se usó `npm audit fix --force` (habría degradado `@angular/build` a 22.1.9 y `@capacitor/cli` a 8.4.3).
+- Verificado con `npm install` → `found 0 vulnerabilities` y con un `npx cap sync android` real
+  (la cadena `xcode/uuid` sigue funcionando).
+
+**5. README final** ✅ — reescrito completo: R1–R7 en ✅ · **59/59 tests** · árbol de `src/app` real
+(`pages/detail`, `pages/favorites`, `components/panel-estado`, `lib/`, `favorites.service`) · mermaid
+ampliado · endpoint de detalle con `synopsis` y su 404 · **offset por lo recibido** (ya no dice `+= 20`) ·
+`git clone JimSul16/API-Explorer` · JDK 21 · APK 4,44 MB · historial de commits completo · 10 dificultades
+(las 6 nuevas de R3–R6 + status bar + vulnerabilidades).
+
+**BUILD (estado final)**
+```
+npm run build                          → verde, 0 errores, 0 warnings
+npx tsc -p tsconfig.app.json --noEmit  → 0
+npx tsc -p tsconfig.spec.json --noEmit → 0
+npm run lint                           → All files pass linting
+npm test -- --watch=false              → 7 archivos · 59/59
+npm audit                              → found 0 vulnerabilities
+.\gradlew.bat assembleDebug            → BUILD SUCCESSFUL (4,44 MB)
+```
+
+**Pendientes (NO son de código)**
+1. **Capturas/video (a mano):** `README.md` tiene la tabla de 7 huecos (`docs/capturas/01…07` + video ≤60 s).
+   Es el ítem de 10 puntos que el revisor puntúa en 4; subir las fotos y sustituir los ⬜ por `![](ruta)`.
+2. **Opcionales del revisor (zona `src/**`, turno cerrado — no los toqué):**
+   - `favorites.page.ts:113-126` pide una ficha por id **sin pausa** → con 10+ favoritos puede saltar un 429 en la demo (riesgo real). Mitigar con ~350 ms de espera o `filter[id]=1,2,3`.
+   - `anime.service.ts:91` calcula `hasMore` con el offset *pedido* (una página corta pide una de más; ya lo mitiga `finSinProgreso`).
+   - `home.page.ts:206` llama `complete()` en la rama del guard (cosmético).
+   - `favorites.page.ts:81-84`: si la escritura falla, la lista ya quitó el ítem.
+   Suman ~1,5 puntos. **Si se tocan, rehacer APK + verificar 59/59.**
 
 ---
 

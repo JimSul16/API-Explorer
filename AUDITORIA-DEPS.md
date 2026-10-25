@@ -1,9 +1,9 @@
 # 🔒 Auditoría de dependencias — API Explorer
 
-> 🟦 **MiMo** · skill `codebase-cleanup-deps-audit` · **25/10/2026** · solo lectura.
-> Ejecutada **durante el turno de DeepSeek** (fases E/G): por eso **no se modificó `package.json`
-> ni `node_modules`** — hacerlo habría podido romper sus builds a mitad de tarea.
-> La remediación (§4) queda agendada para la **Fase H** (PLAN.md §13.3).
+> 🟦 **MiMo** · skill `codebase-cleanup-deps-audit` · **25/10/2026**.
+> Diagnóstico inicial hecho **durante el turno de DeepSeek** (fases E/G) en modo solo lectura; la
+> remediación de §4 se ejecutó **al cerrar la fase H**, con `src/**` congelado.
+> **Resultado final: `npm audit` → 0 vulnerabilidades** (eran 5).
 
 ---
 
@@ -39,7 +39,10 @@ aquí se usan como dependencias sin tocar su código).
 
 **Acción menor:** añadir `"license": "MIT"` (o la que corresponda) a `package.json`.
 
-## 3. Vulnerabilidades — `npm audit` → **5 (1 high · 3 moderate · 1 low)**
+## 3. Vulnerabilidades — `npm audit` → **5 (1 high · 3 moderate · 1 low)** → ✅ **resueltas: hoy `0`**
+
+> Estado inicial el 25/10/2026. La tabla queda como **histórico del diagnóstico**; el resultado final
+> de la remediación está en §4.
 
 | # | Paquete | Sev. | Advisory | ¿Dónde corre? | Exposición real |
 |---|---|---|---|---|---|
@@ -52,33 +55,39 @@ aquí se usan como dependencias sin tocar su código).
 **Ninguna vulnerabilidad afecta al código que corre en el dispositivo** (todas están en la cadena de
 herramientas de desarrollo/compilación). Ninguna es *critical*.
 
-## 4. Plan de remediación (agendado para la Fase H — ejecutar con `src/**` congelado)
+## 4. Remediación — ✅ EJECUTADA el 25/10/2026 (fase H) → `npm audit`: **0**
 
-⚠️ **`npm audit fix --force` NO se debe usar**: su "solución" es **degradar** `@angular/build` a
-22.1.9 y `@capacitor/cli` a 8.4.3 (rompe semver-major). Plan correcto, en orden:
+⚠️ **`npm audit fix --force` NO se usó**: su "solución" es **degradar** `@angular/build` a 22.1.9 y
+`@capacitor/cli` a 8.4.3 (rompe semver-major). Se aplicó en su lugar la vía segura:
+
+| Paso | Acción | Efecto |
+|---|---|---|
+| 1 | `package.json` → `"overrides": { "vite": "^8.3.5" }` | `vite` 8.3.0 → **8.3.5** (`npm ls vite` → `overridden`) ⇒ fuera el **high** (6 advisories de vite/launch-editor) y el **low** |
+| 2 | `package.json` → `"overrides": { "uuid": "^11.1.1" }` | rompe la cadena `uuid ← xcode ← @capacitor/cli` ⇒ fuera los **3 moderate** |
+| 3 | `package.json` → `"license": "MIT"` | el único paquete "sin licencia" del inventario (el nuestro) queda definido |
+| 4 | `npm install` | **`found 0 vulnerabilities`** |
+
+**Verificación obligatoria ejecutada tras la remediación:**
 
 ```powershell
-# 1) Parches seguros (no rompen nada)
-npm i -D @angular/build@22.2.4 @angular/cli@22.2.4
-
-# 2) vite: el advisory afecta 8.3.0-8.3.2; @angular/build@22.2.4 aún trae 8.3.0
-#    → forzar versión sana con "overrides" en package.json:
-#      "overrides": { "vite": "^8.3.5" }
-#    (8.3.5 = última; 8.3.3+ ya está parcheada)
-
-# 3) uuid: mismo mecanismo, sólo si se quiere 0 vulns
-#      "overrides": { "uuid": "^11.1.1" }
-#    xcode pide uuid@^7.0.3; es build-time y no se usa con `buf` → riesgo bajo,
-#    pero como es un salto de mayor, verificar con `npx cap --version` y un `npx cap sync android`.
-
-# 4) Verificación obligatoria tras cada paso
-npm run build; npx tsc -p tsconfig.app.json --noEmit; npm run lint; npm test -- --watch=false
-npx cap sync android   # y, si todo verde, el APK de la Fase H
+npm install                              # found 0 vulnerabilities
+npm audit                                # found 0 vulnerabilities
+npm run build                            # verde, 0 errores, 0 warnings
+npx tsc -p tsconfig.app.json --noEmit    # 0
+npx tsc -p tsconfig.spec.json --noEmit   # 0
+npm run lint                             # All files pass linting
+npm test -- --watch=false                # 7 archivos · 59/59
+npx cap sync android                     # √ update android → Sync finished  (ejercita la cadena xcode/uuid)
 ```
 
-**Alternativa conservadora (la recomendada para la entrega):** aplicar solo el **paso 1 + 2**
-(resuelve el *high* y el *low*) y **documentar** los 3 moderados de `uuid`/`xcode` como riesgo de
-build-time no explotable en este proyecto. Es lo que se propone en la sección "Dificultades" del README.
+**Por qué `uuid@11.1.1` es seguro aquí:** expone `exports['.'].node.require = ./dist/cjs/index.js`
+(o sea sigue siendo *requireable* desde CJS, que es lo que hace `xcode`), y la única consumidora es la
+CLI de Capacitor al generar el proyecto Xcode (iOS), que ni siquiera se usa en esta máquina. Se comprobó
+con un `npx cap sync android` real, no solo con la teoría.
+
+**Nota:** no se subió `@angular/build`/`@angular/cli` a 22.2.4 porque **no hace falta** para la
+seguridad (el advisory venía por `vite`, ya resuelto con el override) y cualquier cambio de versión
+añadía riesgo a la entrega sin ganancia.
 
 **Otras acciones:**
 - Añadir `"license": "MIT"` a `package.json`.
@@ -99,7 +108,8 @@ No es una vulnerabilidad, salió del mismo diagnóstico:
   "aviso histórico" anotado en `REGISTRO-MIMO.md §10`).
 - **Fix aplicado:** nuevo `values/colors.xml` con la paleta de la app + `android:statusBarColor`,
   `android:navigationBarColor` y `windowLightStatusBar/Light = false` en `AppTheme.NoActionBar`.
-- Efecto visible **recién tras** regenerar el APK en la Fase H.
+- Efecto visible en el **APK regenerado el 25/10** (4,44 MB): status bar y barra de navegación en
+  `#0d0f16`, coherentes con la interfaz.
 
 ---
 
