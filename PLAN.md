@@ -497,7 +497,7 @@ export class FavoritesService {
 | **E — Búsqueda con reinicio** | **R3** | 🟩 `deepseek-codigo` | ✅ **Cerrada 25/10** — `ion-searchbar [debounce]="400"` + `query` en estado + `reiniciar()` limpia items/ids/offset/hasMore/fallo/total + **token de generación** que descarta respuestas y fallos viejos + `enVuelo` esperado antes de vaciar (no deja mudo el infinite scroll) + vacío ≠ error + `PanelEstadoComponent` compartido (home/detalle) + `close-circle` registrado · **25/25 tests** (7 nuevos de R3) · `BUILD: verde` 0 errores / 0 warnings · commit `fase-E-R3` |
 | G1 — Detalle + estados | R4, R5 | 🟩 `deepseek-codigo` | ⏳ siguiente (turno de DeepSeek) |
 | G2 — Favoritos | R6 | 🟩 `deepseek-codigo` | ⏳ tras G1 |
-| H — Verificación + **APK** + auditoría + README + push | Evidencia | 🟦 `mimo-infra` | ⏳ en espera de la señal `FASE-G: commiteado` |
+| **H — Verificación + APK + auditoría + README + push** | Evidencia | 🟦 `mimo-infra` | ⏳ **en espera de la señal `FASE-G: commiteado`** · **parcial ✅ 25/10** (`29b2195`): `AUDITORIA-DEPS.md` (478 paquetes, licencias, `npm audit` = 5 vulns de build-time, plan de remediación) · status bar Android corregida (`values/colors.xml` + `statusBarColor` en `styles.xml`) · README con huecos de R4/R5/R6 y tabla de capturas · **falta al llegar la señal:** verificador-build + revisor-rubrica + APK por terminal + ejecutar la remediación de deps + cifras finales del README + push final |
 
 ---
 
