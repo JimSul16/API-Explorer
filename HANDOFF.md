@@ -17,9 +17,9 @@
 | Responsable | 🟦 MiMo (`mimo-infra`) — el turno de DeepSeek está **terminado** |
 | **BUILD** | ✅ **verde, 0 warnings** — tras G2: `npm run build` (0/0) · `tsc` app+spec 0 · `npm run lint` pass · `npm test` **59/59** en 7 archivos |
 | **Rúbrica (hoy)** | R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10 · R3 15/15 · R4 10/10 · R5 10/10 · **R6 10/10** → resta **README/GitHub (10)** · `revisor-rubrica` estimó **89/100** antes del commit de R6 |
-| Commits (12) | `1269883` fase-B · `1fb11ff` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido · `934c977` REGISTRO-MIMO · `7232eb2` pulido-revisor + REGISTRO-DEEPSEEK · `4b158c2` plan §13 · `fase-E-R3` (R3) · `fase-G-R4R5` (R4+R5) · remote `origin` = GitHub `JimSul16/API-Explorer` |
-| **🚦 Señal para DeepSeek** | 🟢 **`R4+R5 CERRADAS`** (commit `fase-G-R4R5`) — sigue con **G2** (R6 favoritos), mismo agente `deepseek-codigo` |
-| **🚦 Señal para MiMo** | 🔴 en espera — arranca cuando el bloque de DeepSeek diga **`FASE-G: commiteado`** |
+| Commits (16) | `1269883` fase-B · `1fb11ff` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido · `934c977` REGISTRO-MIMO · `7232eb2` pulido-revisor + REGISTRO-DEEPSEEK · `4b158c2` plan §13 · `a1a423f` **fase-E-R3** (R3) · `417b3d1` **fase-G-R4R5** (R4+R5) · `29b2195` + `331be10` fase-H parcial (MiMo) · `f0998a4` **fase-G-R6** (R6) · `fc77b64` estilos compartidos · remote `origin` = GitHub `JimSul16/API-Explorer` |
+| **🚦 Señal para DeepSeek** | ✅ **`TURNO CERRADO`** — E (`fase-E-R3`) · G1 (`fase-G-R4R5`) · G2 (`fase-G-R6` + `fc77b64`) commiteados y pusheados. No hay más fases de código en el plan §13 |
+| **🚦 Señal para MiMo** | 🟢 **`FASE-G: commiteado (f0998a4)`** — R1–R7 completos y en verde; arranca la **fase H** (§13.3) |
 | **📘 Registros de continuidad** | `REGISTRO-MIMO.md` (🟦 MiMo: todo lo hecho + comandos + lo que falta) · `REGISTRO-DEEPSEEK.md` (🟩 DeepSeek: código e interfaz) → base del **nuevo plan en nueva sesión** (R3–R6) |
 | Archivos tocados | raíz + configs (MiMo) · `src/**` completo (DeepSeek) |
 
