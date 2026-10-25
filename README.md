@@ -33,6 +33,8 @@
 - ♾️ **Infinite scrolling blindado:** guard contra peticiones simultáneas, deduplicación por `id`, `[disabled]` al agotar el catálogo y `complete()` SIEMPRE en el bloque `finally`.
 - 🧭 **Paginación honesta:** `hasMore = offset + 20 < meta.count`; cuando la API responde con `data: []` la paginación se corta en seco (nada de bucles infinitos).
 - 💔 **Errores que no rompen la UI:** si falla la página N, la lista anterior se conserva, aparece un aviso inline y el reintento repite exactamente el mismo offset.
+- 🔎 **Búsqueda con reinicio total (R3):** `ion-searchbar` con `debounce="400"`; al escribir se limpian resultados, ids y paginación, se descartan las respuestas tardías y "sin resultados" se distingue de "error de conexión".
+- 🗂 **Estados compartidos:** un único `PanelEstadoComponent` da la misma cara a carga, vacío y error en todas las pantallas (home y detalle).
 - 🎨 **Identidad propia (no genérica):** tema *medianoche + coral sakura* con los 5 tonos personalizados en `variables.scss`, tipografía y jerarquía diseñadas para móvil.
 - ⚡ **Rendimiento:** `OnPush`, `loading="lazy"` en portadas, iconos registrados en `main.ts` (cero descargas en runtime) y Angular 22 con signals.
 
@@ -82,7 +84,7 @@ graph TD
 
 ### Calidad
 - **Compilación:** `ng build` (presupuestos de bundle y de estilos por componente)
-- **Tests:** Vitest 5 con Angular — **9/9** (paginación, dedupe, guard, `finally`, vacío ≠ error)
+- **Tests:** Vitest 5 con Angular — paginación, dedupe, guard, `finally`, vacío ≠ error y **reinicio de búsqueda** (home + servicio + shell). *Cifra definitiva al cierre de la fase G.*
 - **Lint:** ESLint 10 + `angular-eslint`
 - **Plataforma Android:** Gradle (compilado **por terminal**, sin Android Studio)
 
@@ -136,7 +138,7 @@ npx ionic serve
 
 ### 4. Ejecutar la suite de pruebas
 ```bash
-npm test -- --watch=false     # 9/9 tests (Vitest)
+npm test -- --watch=false     # suite completa (Vitest) — cifra final al cierre de la fase G
 npm run lint                  # ESLint
 npx tsc -p tsconfig.app.json --noEmit   # tipos: 0 errores
 ```
@@ -176,13 +178,14 @@ src/app/
 |---|---|---|
 | **R1** | Listado remoto con ≥2 atributos por tarjeta | ✅ |
 | **R2** | Infinite scrolling sin duplicados y con fin real | ✅ |
-| **R3** | Búsqueda con reinicio de resultados y paginación | 📌 etapa posterior |
-| **R4** | Pantalla de detalle con `:id` y regreso | 📌 etapa posterior |
-| **R5** | Estados: carga, vacío, error y reintento | ✅ (en home) |
-| **R6** | Favoritos con Capacitor Preferences | 📌 etapa posterior |
+| **R3** | Búsqueda con reinicio de resultados y paginación | ✅ |
+| **R4** | Pantalla de detalle con `:id` y regreso | ⏳ en curso (fase G) |
+| **R5** | Estados: carga, vacío, error y reintento | ✅ (home + panel compartido; detalle ⏳ en fase G) |
+| **R6** | Favoritos con Capacitor Preferences | ⏳ en curso (fase G) |
 | **R7** | Servicio HTTP + interfaces + componentes separados | ✅ |
 
-**Revisión de rúbrica (subagente automático):** **74/75** puntos evaluables — R1 20/20 · R2 24/25 · R7 20/20 · estados 10/10.
+> **Revisión de rúbrica:** valores **definitivos al cierre de la fase G** — hoy ya van
+> R1 20/20 · R2 25/25 · R3 15/15 · R7 20/20 · estados 10/10 (75 de 85 posibles hasta aquí).
 
 ---
 
@@ -197,11 +200,25 @@ src/app/
 
 ## 📝 Evidencias
 
-- **Build:** `npm run build` → 0 errores y 0 warnings · `tsc` → 0 · `lint` → pass · **tests 9/9**
-- **APK:** `app-debug.apk` (4.16 MB) compilado **por terminal**
-- **Historial:** commits atómicos por fase (`fase-B` → `fase-C-D` → `fase-F` → `evidencia-apk`)
-- **Captura/video** del listado + infinite scrolling: _pendiente (etapa final)_
+- **Build:** `npm run build` → 0 errores y 0 warnings · `tsc` → 0 · `lint` → pass · **tests:** ✅ *cifra definitiva al cierre de la fase G*
+- **APK:** `app-debug.apk` compilado **por terminal** (sin Android Studio) — se regenera al cerrar R3–R6
+- **Historial:** commits atómicos por fase (`fase-B` → `fase-C-D` → `fase-F` → `evidencia-apk` → `pulido` → `fase-E-R3`)
 - **Repositorio:** ✅ **https://github.com/JimSul16/API-Explorer** (branch `main`, historial por fases)
+
+### 📸 Capturas y video (huecos por rellenar en la entrega)
+
+| # | Qué se captura | Estado |
+|---|---|---|
+| 1 | Listado con infinite scrolling (varias pantallas de tarjetas) | ⬜ pendiente |
+| 2 | Búsqueda activa + estado "sin resultados" | ⬜ pendiente |
+| 3 | Skeleton de carga y panel de error con *Reintentar* | ⬜ pendiente |
+| 4 | Pantalla de detalle (`:id`) y regreso al listado | ⬜ pendiente (fase G) |
+| 5 | Favoritos marcados y persistidos tras reiniciar la app | ⬜ pendiente (fase G) |
+| 6 | Video corto (≤60 s) del scroll infinito + búsqueda | ⬜ pendiente |
+| 7 | APK instalado en el celular / emulador | ⬜ pendiente |
+
+> **Formato sugerido:** `docs/capturas/01-listado.png` … `07-apk.png` y `docs/video-scroll.mp4`,
+> referenciados aquí con `![](docs/capturas/01-listado.png)`. ⬜ = hueco pendiente de subir.
 
 ---
 

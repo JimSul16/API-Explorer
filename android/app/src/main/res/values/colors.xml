@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      Identidad de la app en Android (misma paleta que src/theme/variables.scss).
+      Sin este archivo la app heredaba los colores por defecto de @capacitor/android
+      (colorPrimaryDark = #303F9F, azul índigo) y la status bar quedaba azul
+      sobre una interfaz medianoche #0d0f16.
+    -->
+    <color name="app_background">#0d0f16</color>
+    <color name="app_accent">#ff5a76</color>
+    <color name="app_accent_aqua">#35d0ba</color>
+
+    <!-- Sobrescribe los valores por defecto de Capacitor/Material -->
+    <color name="colorPrimary">#ff5a76</color>
+    <color name="colorPrimaryDark">#0d0f16</color>
+    <color name="colorAccent">#ff5a76</color>
+</resources>
