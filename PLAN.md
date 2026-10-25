@@ -513,3 +513,54 @@ export class FavoritesService {
 5. Cierre de la clase (fase F): `verificador-build` + `revisor-rubrica` → commit, README parcial y captura/video.
 6. **Etapa posterior (§4.2)** — R3–R6 con DeepSeek y, **con MiMo por terminal**, el APK: `npm run build` → `npx cap sync android` → `android\gradlew.bat assembleDebug`.
 7. Al final: **repo en GitHub + README + APK**, y prepararse para explicar servicio, paginación y manejo de errores sin copiar.
+
+---
+
+## 13. Plan de cierre — R3 a R6 + entrega final (sesión 25/10/2026)
+
+> Reemplaza a §4.2 como **plan activo**. Estado verificado el **25/10**: `git status` limpio · 8 commits · remote `origin` = `https://github.com/JimSul16/API-Explorer` · `npm run build` 0 errores/0 warnings · **`npm test` 18/18** · lint pass.
+> Documentos de contexto obligatorios: **`REGISTRO-MIMO.md`** + **`REGISTRO-DEEPSEEK.md`** + bloques #1–#5 de `HANDOFF.md`.
+
+### 13.1 Orden de ejecución (secuencial, no paralelo)
+
+```
+PASO 1 → 🟩 DeepSeek (deepseek-codigo):  E (R3 búsqueda)  →  G (R4 detalle + R5 estados + R6 favoritos)
+PASO 2 → 🟦 MiMo   (mimo-infra):         H (verificación + rúbrica + APK + auditoría + README final + push)
+```
+
+Motivo del orden: el APK y el README final documentan código que **todavía cambia**; hacerlos antes obliga a repetirlos. Zonas intactas: 🟩 `src/**` · 🟦 raíz/configs/`android/`/`README.md`/`.git/`.
+
+### 13.2 Turno 🟩 DeepSeek — fases E y G
+
+| Fase | Req. | Pts | Tarea | Criterio de fin |
+|---|---|---|---|---|
+| **E** | **R3** búsqueda | 15 | `ion-searchbar debounce="400"` + query en estado + `reiniciar(query)` limpia `items`/`ids`/`offset`/`hasMore`/`fallo` + descartar respuestas viejas (token de generación o `switchMap`) + vacío ≠ error | Escribir "naruto" muestra resultados de Kitsu; borrar el texto vuelve al catálogo completo; paginar **después** de buscar no mezcla catálogo y resultados |
+| **G1** | **R4** detalle | 10 | ruta `anime/:id` (lazy) + `getAnimeById()` en `AnimeService` + `pages/detail/` con `withComponentInputBinding()` + `ion-back-button` | La lista conserva scroll/posición al regresar; id inválido → "no encontrado" |
+| **G1** | **R5** estados | 10 | loading / vacío / error con **Reintentar** en la pantalla de detalle (patrón de `home`) | Los 3 estados se ven y el reintento funciona |
+| **G2** | **R6** favoritos | 10 | `FavoritesService` (`@capacitor/preferences`, ids en `signal`) + ★ en `anime-card` o detalle + página `favoritos` + ruta | Marcar → salir y volver → sigue marcado (persistencia real en el dispositivo) |
+
+**Trampas ya documentadas (leer `REGISTRO-DEEPSEEK.md` §7 antes de escribir):**
+1. `reiniciar()` con una carga de scroll en vuelo deja el `ion-infinite-scroll` mudo → esperar la respuesta o vaciar tras recibirla.
+2. `getAnime(query, offset)` ya existe: **no** dupliques el servicio.
+3. `getAnimeById` va en el servicio (misma `toAnime`), no en la página.
+4. Favoritos: guardar **ids**, no objetos.
+5. Iconos nuevos → `addIcons()` en `main.ts`; si no, no se ven.
+6. Presupuesto de estilos: 3 kB warning / 6 kB error por componente (`home.page.scss` ya está en ~2.8 kB).
+7. `[disabled]` incluye `error()` a propósito (anti-bucle): cualquier reintento limpia `fallo` antes de pedir.
+8. Debounce ≥ 400 ms (Kitsu: 3 req/s) → mensaje `'limite'` ya existente para el 429.
+
+**Cierre de cada fase (obligatorio):** `npm run build` + `tsc` (app y spec) + `npm run lint` + `npm test` en verde → bloque nuevo en `HANDOFF.md` → tabla §11 → **commit atómico** (`fase-E-R3`, `fase-G-R4R5`, `fase-G-R6`) → **push**. Nada de trabajo de MiMo en el `git add`.
+
+**Tests nuevos mínimos esperados:** R3 (reset de lista/offset/ids al buscar, respuesta vieja descartada, vacío ≠ error en búsqueda, paginar tras buscar sin mezclar) · R4/R5 (detalle ok, 404, error de red con reintento) · R6 (toggle, persistencia simulando `Preferences`).
+
+### 13.3 Turno 🟦 MiMo — fase H (cierre y entrega)
+
+1. `verificador-build` → 4 comandos verdes + `revisor-rubrica` → puntuación final sobre R1–R7.
+2. **APK por terminal** (skill `ionic-app-setup` §5): `npm run build` → `npx cap sync android` → `cd android` → `.\gradlew.bat assembleDebug` → verificar `app-debug.apk` (el actual es del estado anterior: regenerar **siempre**).
+3. Auditoría: `auditor-muerto` + `codebase-cleanup-deps-audit` (5 vulnerabilidades del starter, 1 high).
+4. `README.md` final: **hoy dice 9/9 tests y 74/75** → actualizar a los tests reales, marcar R3/R4/R5/R6 ✅, añadir capturas/video y la sección de dificultades de esta etapa.
+5. Señales de fase en `HANDOFF.md` §Último estado + §11 + commit + **push final**.
+
+### 13.4 Meta de rúbrica
+
+Con R1 (20) + R2 (25) + R7 (20) + estados (10) ya asegurados → **75/75**. Sumando R3 (15) + R4 (10) + R5 (10) + R6 (10) + README/GitHub (10) = **100/100** posibles.

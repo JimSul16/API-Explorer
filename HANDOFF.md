@@ -12,12 +12,14 @@
 | **Alcance del plan** | **R1 + R2 + estructura R7** (fases A–D + F); R3–R6 y APK = etapa posterior (PLAN.md §4.2) |
 | **Modo** | **Paralelo** (PLAN.md §3.4): 🟦 MiMo = raíz/config · 🟩 DeepSeek = `src/**` |
 | **SCAFFOLD** | ✅ **listo** (22/10 20:12) |
-| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ (MiMo, 22/10 20:32) · **P ✅ pulido R1+R2+R7 (DeepSeek)** → **alcance del plan CERRADO** · etapa posterior: E/R3, G/R4+R6 (DeepSeek) |
-| Responsable | 🟩 DeepSeek (`deepseek-codigo`) para R3 → R4 → R6 · 🟦 MiMo en espera (etapa posterior: APK, auditoría, GitHub) |
-| **BUILD** | ✅ **verde, 0 warnings** — `npm run build` (6 s) · `tsc` app y spec 0 · `ng lint` pass · `npm test` **18/18** (22/10, tras el pulido) |
-| **Rúbrica (hoy)** | `revisor-rubrica` → **75/75** evaluables: R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10. Sin bloqueantes ni medios. |
-| Commits | `1269883` fase-B · `b7116f2` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido (16/16) · `934c977` REGISTRO-MIMO + registro |
-| **🚦 Señal para DeepSeek** | ✅ **`fase-C-D: commiteado (b7116f2)`** → puede arrancar R3 (búsqueda) → R4 (detalle) → R6 (favoritos) |
+| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ · **P ✅ pulido R1+R2+R7** → alcance original CERRADO · **ahora: plan activo = §13 (R3–R6 + cierre)** |
+| Orden | **PASO 1** 🟩 DeepSeek: **E (R3)** → **G (R4 + R5 + R6)** · **PASO 2** 🟦 MiMo: **H (verificación + APK + auditoría + README + push)** |
+| Responsable | 🟩 DeepSeek (`deepseek-codigo`) arranca **E** · 🟦 MiMo en espera hasta que HANDOFF diga `FASE-G: commiteado` |
+| **BUILD** | ✅ **verde, 0 warnings** — verificado **25/10**: `npm run build` (0 errores/0 warnings) · `tsc` app+spec 0 · `npm run lint` pass · `npm test` **18/18** · `git status` limpio |
+| **Rúbrica (hoy)** | `revisor-rubrica` → **75/75** evaluables: R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10. Meta con R3–R6 + README: **100/100** |
+| Commits (8) | `1269883` fase-B · `1fb11ff` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido · `934c977` REGISTRO-MIMO · `7232eb2` pulido-revisor + REGISTRO-DEEPSEEK · remote `origin` = GitHub `JimSul16/API-Explorer` |
+| **🚦 Señal para DeepSeek** | 🟢 **`LISTO PARA R3`** (25/10) — ábrelo con el agente `deepseek-codigo` + skill `ui-ionic-design` |
+| **🚦 Señal para MiMo** | 🔴 en espera — arranca cuando el bloque de DeepSeek diga **`FASE-G: commiteado`** |
 | **📘 Registros de continuidad** | `REGISTRO-MIMO.md` (🟦 MiMo: todo lo hecho + comandos + lo que falta) · `REGISTRO-DEEPSEEK.md` (🟩 DeepSeek: código e interfaz) → base del **nuevo plan en nueva sesión** (R3–R6) |
 | Archivos tocados | raíz + configs (MiMo) · `src/**` completo (DeepSeek) |
 
@@ -183,6 +185,35 @@ npm test -- --watch=false              → 3 archivos · 18/18 tests
 
 ---
 
+## Handoff #5 — de 🟦 MiMo a 🟩 DeepSeek 🟢 SEÑAL: `LISTO PARA R3`
+
+**Plan activo:** **§13 de `PLAN.md` — cierre R3 a R6 + entrega final** (25/10/2026).
+
+**Verificación de arranque (25/10, hecha por MiMo)**
+```
+git status                      → limpio (8 commits, remote origin = JimSul16/API-Explorer)
+npm run build                   → verde, 0 errores, 0 warnings (27 s)
+npx tsc -p tsconfig.app.json --noEmit  → 0
+npm run lint                    → All files pass linting
+npm test -- --watch=false       → 3 archivos · 18/18
+```
+
+**Turno 1 — 🟩 DeepSeek (`deepseek-codigo` + skill `ui-ionic-design`)**
+- [ ] **Fase E — R3 búsqueda** (15 pts): `ion-searchbar debounce="400"`, query en estado, `reiniciar(query)`, descartar respuestas viejas, vacío ≠ error. Commit `fase-E-R3`.
+- [ ] **Fase G1 — R4 + R5** (10 + 10 pts): ruta `anime/:id`, `getAnimeById()` en el servicio, `pages/detail/`, `ion-back-button`, loading/vacío/error con Reintentar. Commit `fase-G-R4R5`.
+- [ ] **Fase G2 — R6 favoritos** (10 pts): `FavoritesService` con Preferences (solo ids), ★ en tarjeta/detalle, página `favoritos`, ruta. Commit `fase-G-R6`.
+- Zona: **`src/**` exclusivo**. Antes de cada commit: build + tsc (app y spec) + lint + tests en verde, bloque nuevo aquí, §11 actualizado, **push**.
+- Al terminar G: escribe **`FASE-G: commiteado (<hash>)`** en la fila *Señal para MiMo*.
+
+**Turno 2 — 🟦 MiMo (`mimo-infra`)** — espera esa señal y luego:
+- [ ] `verificador-build` + `revisor-rubrica` (puntuación final R1–R7) · [ ] APK por terminal (el actual es del estado anterior) · [ ] `auditor-muerto` + `codebase-cleanup-deps-audit` · [ ] `README.md` final (hoy dice **9/9 tests** y **74/75**: desactualizado) · [ ] §11 + push final.
+
+**Decisiones a respetar (ambos)** — sin cambios de las §4 de `REGISTRO-MIMO.md`: Kitsu · `PAGE_SIZE=20` · fin real por `meta.count` · JSON:API solo en `AnimeService` · todo HTTP en el servicio · tema oscuro por identidad · `OnPush` + signals · iconos con `addIcons()` en `main.ts` · un solo escritor a la vez · nada de `git add` ajeno.
+
+**BUILD:** ✅ **verde, 18/18 tests** (verificado 25/10).
+**Errores conocidos:** ninguno funcional. Pendientes: README desactualizado · APK a regenerar · 5 vulnerabilidades del starter · `README.md` sin capturas/video.
+
+---
 
 ## Plantilla para los siguientes handoffs
 
