@@ -2,10 +2,21 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { Preferences } from '@capacitor/preferences';
+import { vi } from 'vitest';
 
 import { environment } from '../../../environments/environment';
 import { DetailPage } from './detail.page';
 
+vi.mock('@capacitor/preferences', () => ({
+  Preferences: {
+    get: vi.fn(),
+    set: vi.fn(),
+  },
+}));
+
+const getMock = vi.mocked(Preferences.get);
+const setMock = vi.mocked(Preferences.set);
 const URL_KITSU = environment.apiUrl;
 
 interface RecursoDetalle {
@@ -55,6 +66,11 @@ describe('DetailPage', () => {
   }
 
   beforeEach(async () => {
+    getMock.mockReset();
+    setMock.mockReset();
+    getMock.mockResolvedValue({ value: null });
+    setMock.mockResolvedValue(undefined);
+
     await TestBed.configureTestingModule({
       imports: [DetailPage],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
@@ -173,5 +189,21 @@ describe('DetailPage', () => {
 
     expect(ficha.anime()?.id).toBe('2');
     expect(ficha.estado()).toBe('listo');
+  });
+
+  it('guarda y quita el favorito desde la ficha (R6)', async () => {
+    await abrir('10');
+    http.expectOne((r) => r.url === `${URL_KITSU}/10`).flush(detalle(10));
+    await asentar();
+
+    expect(ficha.esFavorito()).toBe(false);
+
+    await ficha.alternarFavorito();
+    expect(ficha.esFavorito()).toBe(true);
+    expect(setMock).toHaveBeenCalledWith({ key: 'favoritos', value: '["10"]' });
+
+    await ficha.alternarFavorito();
+    expect(ficha.esFavorito()).toBe(false);
+    expect(setMock).toHaveBeenLastCalledWith({ key: 'favoritos', value: '[]' });
   });
 });

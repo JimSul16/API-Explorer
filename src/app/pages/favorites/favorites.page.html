@@ -1,0 +1,74 @@
+<ion-header class="cabecera">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" text="" aria-label="Volver al catálogo"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Favoritos</ion-title>
+    @if (total() > 0) {
+      <span slot="end" class="fuente">{{ total() }}</span>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="fondo">
+  <section class="intro">
+    <p class="eyebrow">Guardados en este dispositivo</p>
+    <h2 class="lema">Tu lista,<br /><em>sin conexión</em>.</h2>
+    <p class="cifras" aria-live="polite">{{ resumen() }}</p>
+  </section>
+
+  @switch (estado()) {
+    @case ('cargando') {
+      <div class="lista" aria-busy="true" aria-label="Cargando tus favoritos">
+        @for (fila of [1, 2, 3]; track fila) {
+          <div class="esqueleto">
+            <p class="sk-portada"></p>
+            <div class="sk-texto">
+              <p class="sk-linea"></p>
+              <p class="sk-linea corta"></p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @case ('error') {
+      <app-panel-estado
+        rol="alert"
+        icono="cloud-offline-outline"
+        titulo="No pudimos abrir tus favoritos"
+        mensaje="Los ids están guardados, pero la API no respondió. Reintenta en unos segundos."
+        accion="Reintentar"
+        (accionClick)="reintentar()"
+      />
+    }
+
+    @case ('vacio') {
+      <app-panel-estado
+        icono="heart-outline"
+        titulo="Aún no tienes favoritos"
+        mensaje="Toca la estrella de cualquier tarjeta del catálogo y aparecerá aquí, guardado en el teléfono."
+        accion="Explorar el catálogo"
+        (accionClick)="irAlCatalogo()"
+      />
+    }
+
+    @default {
+      <div class="lista">
+        @for (anime of items(); track anime.id) {
+          <app-anime-card [anime]="anime" [favorito]="true" (favoritoClick)="quitar($event)" />
+        }
+      </div>
+
+      @if (fallidos() > 0) {
+        <div class="aviso" role="alert">
+          <p>
+            {{ fallidos() }} {{ fallidos() === 1 ? 'ficha' : 'fichas' }} no se
+            {{ fallidos() === 1 ? 'pudo' : 'pudieron' }} cargar de la API. Tu marca sigue guardada.
+          </p>
+          <button type="button" class="reintentar-inline" (click)="reintentar()">Reintentar</button>
+        </div>
+      }
+    }
+  }
+</ion-content>

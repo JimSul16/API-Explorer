@@ -103,6 +103,17 @@
           <h2>Sinopsis</h2>
           <p>{{ sinopsis() }}</p>
         </section>
+
+        <button
+          type="button"
+          class="guardar"
+          [class.activo]="esFavorito()"
+          [attr.aria-pressed]="esFavorito()"
+          (click)="alternarFavorito()"
+        >
+          <ion-icon [name]="esFavorito() ? 'heart' : 'heart-outline'" aria-hidden="true"></ion-icon>
+          {{ esFavorito() ? 'Guardado en favoritos' : 'Guardar en favoritos' }}
+        </button>
       </article>
     }
   }

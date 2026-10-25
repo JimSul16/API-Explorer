@@ -4,7 +4,19 @@
       <span class="pulso" aria-hidden="true"></span>
       <ion-title>API Explorer</ion-title>
     </div>
-    <span slot="end" class="fuente">Kitsu</span>
+    <a
+      slot="end"
+      class="ir-favoritos"
+      routerLink="/favoritos"
+      [attr.aria-label]="
+        'Ver favoritos' + (idsFavoritos().size > 0 ? ': ' + idsFavoritos().size : '')
+      "
+    >
+      <ion-icon name="heart" aria-hidden="true"></ion-icon>
+      @if (idsFavoritos().size > 0) {
+        <span class="cuenta">{{ idsFavoritos().size }}</span>
+      }
+    </a>
   </ion-toolbar>
 </ion-header>
 
@@ -80,7 +92,11 @@
     @default {
       <div class="lista">
         @for (anime of items(); track anime.id) {
-          <app-anime-card [anime]="anime" />
+          <app-anime-card
+            [anime]="anime"
+            [favorito]="idsFavoritos().has(anime.id)"
+            (favoritoClick)="alternarFavorito($event)"
+          />
         }
       </div>
 

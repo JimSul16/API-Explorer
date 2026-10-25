@@ -5,7 +5,8 @@
 .tarjeta {
   position: relative;
   display: grid;
-  padding: 10px;
+  /* El hueco de la derecha es el carril de la estrella: nunca tapa el título. */
+  padding: 10px 52px 10px 10px;
   border-radius: 16px;
   border: 1px solid var(--app-borde);
   background: var(--app-superficie);
@@ -38,6 +39,45 @@
 .tarjeta:active {
   transform: scale(0.985);
   border-color: hsl(var(--matiz) 70% 60% / 0.5);
+}
+
+/* Estrella de favoritos (R6): 44px, fuera del enlace para no navegar al tocarla. */
+.favorito {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(13 15 22 / 0.72);
+  color: var(--app-texto-suave);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.favorito ion-icon {
+  font-size: 21px;
+}
+
+.favorito.activo {
+  color: var(--ion-color-primary);
+  background: rgb(var(--ion-color-primary-rgb) / 0.18);
+}
+
+.favorito:active {
+  transform: scale(0.9);
+}
+
+.favorito:focus-visible {
+  outline: 2px solid var(--ion-color-secondary);
+  outline-offset: 2px;
 }
 
 .portada {

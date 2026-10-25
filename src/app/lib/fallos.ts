@@ -14,6 +14,8 @@ export function mensajeDeFallo(fallo: FalloApi): string {
       return `Kitsu está fallando (error ${fallo.status}). Espera un momento y reintenta.`;
     case 'cliente':
       return `La API rechazó la petición (error ${fallo.status}). Reintenta en unos segundos.`;
+    case 'desconocido':
+      return 'Algo falló dentro de la app al procesar la respuesta. Reintenta; si sigue igual, vuelve al catálogo.';
   }
 }
 
@@ -28,20 +30,23 @@ export function etiquetaDeFallo(fallo: FalloApi | null): string {
       return 'La API respondió con error';
     case 'cliente':
       return 'Petición rechazada por la API';
+    case 'desconocido':
+      return 'Error inesperado en la app';
     default:
       return 'Error al cargar el catálogo';
   }
 }
 
 /**
- * Normaliza lo lanzado por el servicio. Un error inesperado (no clasificado)
- * se trata como fallo de servidor para no dejar la pantalla sin explicación.
+ * Normaliza lo lanzado por el servicio. Un error inesperado se marca como
+ * `desconocido` en vez de disfrazarlo de "sin conexión": el usuario ve el
+ * mensaje correcto y el problema no se confunde con la red.
  */
 export function aFallo(motivo: unknown): FalloApi {
   if (typeof motivo === 'object' && motivo !== null && 'tipo' in motivo && 'status' in motivo) {
     return motivo as FalloApi;
   }
-  return { tipo: 'servidor', status: 0 };
+  return { tipo: 'desconocido', status: 0 };
 }
 
 /** Un 404 no es "la API se cayó": es "ese título no existe". */

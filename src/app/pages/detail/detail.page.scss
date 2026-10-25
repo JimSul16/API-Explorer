@@ -26,7 +26,6 @@
   object-fit: cover;
   opacity: 0.18;
   filter: blur(18px) saturate(1.2);
-  transform: scale(1.15);
   pointer-events: none;
 }
 
@@ -160,8 +159,36 @@
   }
 }
 
-/* Esqueleto de carga con la misma forma que la ficha final */
-.esqueleto-portada {
+.guardar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 22px;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  background: rgb(var(--ion-color-primary-rgb) / 0.1);
+  border: 1px solid rgb(var(--ion-color-primary-rgb) / 0.45);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.guardar ion-icon {
+  font-size: 20px;
+}
+
+.guardar.activo {
+  color: var(--ion-color-primary-contrast);
+  background: var(--ion-color-primary);
+}
+
+/* Esqueleto de carga con la misma forma que la ficha final */.esqueleto-portada {
   position: relative;
   height: 210px;
   border-radius: 20px;
@@ -205,24 +232,4 @@
   height: 14px;
   margin: 0 0 10px;
   border-radius: 6px;
-}
-
-@media (min-width: 560px) {
-  .hero {
-    display: grid;
-    grid-template-columns: 148px 1fr;
-    gap: 18px;
-    align-items: start;
-  }
-
-  .titular {
-    margin-top: 0;
-  }
-
-  .nota {
-    position: static;
-    grid-column: 2;
-    justify-self: start;
-    margin-top: 4px;
-  }
 }

@@ -25,6 +25,7 @@ import { aFallo, esNoEncontrado, etiquetaDeFallo, mensajeDeFallo } from '../../l
 import { inicialesDe, matizDe, notaDe } from '../../lib/portada';
 import { Anime, FalloApi } from '../../models/anime.model';
 import { AnimeService } from '../../services/anime.service';
+import { FavoritesService } from '../../services/favorites.service';
 
 type EstadoDetalle = 'cargando' | 'error' | 'noEncontrado' | 'listo';
 
@@ -53,6 +54,7 @@ type EstadoDetalle = 'cargando' | 'error' | 'noEncontrado' | 'listo';
 export class DetailPage {
   private readonly svc = inject(AnimeService);
   private readonly router = inject(Router);
+  private readonly favoritos = inject(FavoritesService);
 
   /** `anime/:id` — lo inyecta el router como input del componente. */
   readonly id = input('');
@@ -80,6 +82,11 @@ export class DetailPage {
         this.fallo.set(null);
         return;
       }
+      // Ficha nueva: nada de la anterior debe quedar en pantalla.
+      this.portadaRota.set(false);
+      this.anime.set(null);
+      this.cargando.set(true);
+      this.fallo.set(null);
       void this.cargar(id);
     });
   }
@@ -129,10 +136,26 @@ export class DetailPage {
     () => (this.anime()?.portada.length ?? 0) > 0 && !this.portadaRota(),
   );
 
-  /** Reintento explícito: mismo id, mismo offset (no hay offset: es una ficha). */
+  /** Reintento explícito de la misma ficha (sin id válido no se pide nada). */
   reintentar(): void {
-    this.portadaRota.set(false);
-    void this.cargar(this.id().trim() || String(this.pedido ?? ''));
+    const id = this.id().trim();
+    if (id) {
+      this.portadaRota.set(false);
+      void this.cargar(id);
+    }
+  }
+
+  /** Estrella de la ficha (R6): el servicio persiste solo el id. */
+  readonly esFavorito = computed(() => {
+    const anime = this.anime();
+    return anime !== null && this.favoritos.ids().includes(anime.id);
+  });
+
+  async alternarFavorito(): Promise<void> {
+    const anime = this.anime();
+    if (anime) {
+      await this.favoritos.toggle(anime.id);
+    }
   }
 
   /** Acción del estado "no encontrado": volver al catálogo sin apilar otra vista. */

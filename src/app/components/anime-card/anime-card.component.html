@@ -37,4 +37,17 @@
       </p>
     </div>
   </a>
+
+  <button
+    type="button"
+    class="favorito"
+    [class.activo]="favorito()"
+    [attr.aria-pressed]="favorito()"
+    [attr.aria-label]="
+      (favorito() ? 'Quitar de favoritos: ' : 'Añadir a favoritos: ') + anime().titulo
+    "
+    (click)="favoritoClick.emit(anime().id)"
+  >
+    <ion-icon [name]="favorito() ? 'heart' : 'heart-outline'" aria-hidden="true"></ion-icon>
+  </button>
 </article>

@@ -109,24 +109,28 @@ export class AnimeService {
       .pipe(
         map((r) => {
           if (!r.data) {
-            // 200 sin recurso: se trata como "no existe" y la página muestra su aviso.
-            throw { tipo: 'cliente', status: 404 } satisfies FalloApi;
+            // 200 sin recurso: se levanta como 404 para que la página muestre
+            // "no encontrado" y no un error de red.
+            throw new HttpErrorResponse({
+              status: 404,
+              statusText: 'Not Found',
+              url: `${this.base}/${id}`,
+            });
           }
           return this.toAnime(r.data);
         }),
-        catchError((error: unknown) =>
-          throwError(() => (error instanceof HttpErrorResponse ? this.clasificar(error) : error)),
-        ),
+        catchError((error: unknown) => throwError(() => this.clasificar(error))),
       );
   }
 
   /**
-   * Red caída (sin respuesta) ≠ API rota (5xx/429) ≠ petición rechazada (4xx).
+   * Red caída (sin respuesta) ≠ API rota (5xx/429) ≠ petición rechazada (4xx)
+   * ≠ error propio de la app (`desconocido`, que no es culpa de la red).
    * La página decide el mensaje; el contrato de `PageResult` no cambia.
    */
   private clasificar(error: unknown): FalloApi {
     if (!(error instanceof HttpErrorResponse)) {
-      return { tipo: 'red', status: 0 };
+      return { tipo: 'desconocido', status: 0 };
     }
     if (error.status === 0) {
       return { tipo: 'red', status: 0 };

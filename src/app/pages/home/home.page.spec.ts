@@ -4,9 +4,21 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { IonInfiniteScroll, IonSearchbar } from '@ionic/angular';
+import { Preferences } from '@capacitor/preferences';
+import { vi } from 'vitest';
 
 import { environment } from '../../../environments/environment';
 import { HomePage } from './home.page';
+
+vi.mock('@capacitor/preferences', () => ({
+  Preferences: {
+    get: vi.fn(),
+    set: vi.fn(),
+  },
+}));
+
+const getMock = vi.mocked(Preferences.get);
+const setMock = vi.mocked(Preferences.set);
 
 const URL_KITSU = environment.apiUrl;
 
@@ -61,6 +73,11 @@ describe('HomePage', () => {
   }
 
   beforeEach(async () => {
+    getMock.mockReset();
+    setMock.mockReset();
+    getMock.mockResolvedValue({ value: null });
+    setMock.mockResolvedValue(undefined);
+
     await TestBed.configureTestingModule({
       imports: [HomePage],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
@@ -428,5 +445,65 @@ describe('HomePage', () => {
     expect(lista.query()).toBe('');
     expect(lista.buscando()).toBe(false);
     expect(lista.items().map((a) => a.id)).toEqual(['1', '2']);
+  });
+
+  it('mientras reinicia no mezcla la consulta nueva con los conteos viejos', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
+    await asentar();
+
+    const enVuelo = lista.cargar(); // petición de scroll que aún no responde
+    const busqueda = lista.reiniciar('naruto'); // espera a que esa cierre
+
+    expect(lista.resumen()).toContain('Buscando «naruto»');
+    expect(lista.resumen()).not.toContain('títulos');
+
+    http.expectOne((r) => r.params.get('page[offset]') === '2').flush(pagina([3], 100));
+    await enVuelo;
+    await asentar();
+    http.expectOne((r) => r.params.get('filter[text]') === 'naruto').flush(pagina([9], 1));
+    await busqueda;
+
+    expect(lista.resumen()).toContain('«naruto»');
+    expect(lista.resumen()).not.toContain('Buscando');
+  });
+
+  // ---- R6: favoritos desde la tarjeta ----
+  it('la estrella de la tarjeta guarda el id y lo persiste (R6)', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
+    await asentar();
+    fixture.detectChanges();
+
+    const estrella = (): HTMLButtonElement =>
+      fixture.debugElement.query(By.css('.favorito')).nativeElement as HTMLButtonElement;
+
+    expect(estrella().getAttribute('aria-pressed')).toBe('false');
+
+    estrella().click();
+    await asentar();
+    fixture.detectChanges();
+
+    expect(estrella().getAttribute('aria-pressed')).toBe('true');
+    expect(setMock).toHaveBeenCalledWith({ key: 'favoritos', value: '["1"]' });
+
+    estrella().click(); // la misma estrella vuelve a quitarlo
+    await asentar();
+    fixture.detectChanges();
+
+    expect(estrella().getAttribute('aria-pressed')).toBe('false');
+    expect(setMock).toHaveBeenLastCalledWith({ key: 'favoritos', value: '[]' });
+  });
+
+  it('al arrancar pinta como favoritos los ids ya guardados', async () => {
+    getMock.mockResolvedValue({ value: '["2"]' });
+    // El servicio ya se leyó en el `beforeEach` de la app real; aquí se simula
+    // marcando el id a mano para comprobar que la tarjeta lo refleja.
+    await lista.alternarFavorito('2');
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
+    await asentar();
+    fixture.detectChanges();
+
+    const estrellas = fixture.debugElement.queryAll(By.css('.favorito'));
+    expect(estrellas[0].nativeElement.getAttribute('aria-pressed')).toBe('false');
+    expect(estrellas[1].nativeElement.getAttribute('aria-pressed')).toBe('true');
   });
 });

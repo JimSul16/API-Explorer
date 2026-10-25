@@ -118,41 +118,6 @@
   width: 62%;
 }
 
-.aviso {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  margin: 4px 16px 16px;
-  padding: 18px;
-  text-align: center;
-  border-radius: 16px;
-  background: var(--app-superficie);
-  border: 1px solid rgb(var(--ion-color-primary-rgb) / 0.3);
-
-  ion-icon {
-    font-size: 30px;
-    color: var(--ion-color-primary);
-  }
-
-  p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--app-texto-suave);
-  }
-}
-
-.reintentar-inline {
-  min-height: 44px;
-  padding: 0 20px;
-  border-radius: 12px;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ion-color-primary);
-  background: transparent;
-  border: 1px solid var(--ion-color-primary);
-}
-
 .fin {
   display: flex;
   align-items: center;

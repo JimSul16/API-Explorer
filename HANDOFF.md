@@ -12,11 +12,11 @@
 | **Alcance del plan** | **R1 + R2 + estructura R7** (fases A–D + F); R3–R6 y APK = etapa posterior (PLAN.md §4.2) |
 | **Modo** | **Paralelo** (PLAN.md §3.4): 🟦 MiMo = raíz/config · 🟩 DeepSeek = `src/**` |
 | **SCAFFOLD** | ✅ **listo** (22/10 20:12) |
-| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ · P ✅ · **E ✅ (R3)** · **G1 ✅ (R4+R5)** · G2 ⏳ · H ⏳ |
-| Orden | **PASO 1** 🟩 DeepSeek: **E (R3) ✅** → **G1 (R4 + R5) ✅** → **G2 (R6)** · **PASO 2** 🟦 MiMo: **H (verificación + APK + auditoría + README + push)** |
-| Responsable | 🟩 DeepSeek (`deepseek-codigo`) sigue con **G2** · 🟦 MiMo en espera hasta que HANDOFF diga `FASE-G: commiteado` |
-| **BUILD** | ✅ **verde, 0 warnings** — tras G1: `npm run build` (0 errores/0 warnings) · `tsc` app+spec 0 · `npm run lint` pass · `npm test` **36/36** |
-| **Rúbrica (hoy)** | R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10 · **R3 15/15** · **R4 10/10 · R5 10/10** → meta restante: R6 (10) + README/GitHub (10) |
+| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ · P ✅ · **E ✅ (R3)** · **G1 ✅ (R4+R5)** · **G2 ✅ (R6)** → **R1–R7 implementados** · **H ⏳ (MiMo)** |
+| Orden | **PASO 1** 🟩 DeepSeek: **E ✅ → G1 ✅ → G2 ✅ (cerrado)** · **PASO 2** 🟦 MiMo: **H (verificación + APK + auditoría + README + push)** |
+| Responsable | 🟦 MiMo (`mimo-infra`) — el turno de DeepSeek está **terminado** |
+| **BUILD** | ✅ **verde, 0 warnings** — tras G2: `npm run build` (0/0) · `tsc` app+spec 0 · `npm run lint` pass · `npm test` **59/59** en 7 archivos |
+| **Rúbrica (hoy)** | R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10 · R3 15/15 · R4 10/10 · R5 10/10 · **R6 10/10** → resta **README/GitHub (10)** · `revisor-rubrica` estimó **89/100** antes del commit de R6 |
 | Commits (12) | `1269883` fase-B · `1fb11ff` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido · `934c977` REGISTRO-MIMO · `7232eb2` pulido-revisor + REGISTRO-DEEPSEEK · `4b158c2` plan §13 · `fase-E-R3` (R3) · `fase-G-R4R5` (R4+R5) · remote `origin` = GitHub `JimSul16/API-Explorer` |
 | **🚦 Señal para DeepSeek** | 🟢 **`R4+R5 CERRADAS`** (commit `fase-G-R4R5`) — sigue con **G2** (R6 favoritos), mismo agente `deepseek-codigo` |
 | **🚦 Señal para MiMo** | 🔴 en espera — arranca cuando el bloque de DeepSeek diga **`FASE-G: commiteado`** |
@@ -295,6 +295,49 @@ npm test -- --watch=false              → 4 archivos · 36/36 tests
 `verificador-build` (independiente): **BUILD: verde**, 0/0, 10/10 invariantes de R4/R5 OK.
 
 **Errores conocidos:** ninguno. (`android/**` y `AUDITORIA-DEPS.md` siguen siendo de MiMo: no los toco.)
+
+---
+
+## Handoff #8 — de 🟩 DeepSeek a 🟦 MiMo (G2 cerrada) ✅ `FASE-G: commiteado`
+
+**Fase completada:** **G2 — R6 favoritos con Capacitor Preferences**. Con esto **R1–R7 están implementados**; queda la fase H (verificación final, README, APK y push).
+
+**Qué quedó hecho (zona DeepSeek: `src/**`)**
+- [x] `services/favorites.service.ts` → `@capacitor/preferences`, **solo ids** (`JSON.stringify(string[])`), `signal` + `total`, `init()` **idempotente** (una sola lectura; une lo leído con lo marcado en vuelo), `toggle()` optimista con **reversión del id concreto** si la escritura falla, `quitar(id)`, y `parsear()` que descarta JSON corrupto, repetidos y valores que no son id.
+- [x] `main.ts` → `provideAppInitializer(() => inject(FavoritesService).init())`: la estrella ya sale marcada en el primer render. Iconos `heart`/`heartOutline` registrados con `addIcons()`.
+- [x] `anime-card` → **botón estrella de 44 px** (hermano del `<a>`, `z-index` propio) con `aria-pressed` y `aria-label` "Añadir/Quitar de favoritos: <título>". La tarjeta **no** conoce el servicio: entra por `favorito` (input) y sale por `favoritoClick` (output).
+- [x] `home.page` → `idsFavoritos` en `computed` (`Set`), `alternarFavorito(id)`, y un **acceso a favoritos con contador** en la cabecera.
+- [x] `detail.page` → botón "Guardar en favoritos" / "Guardado en favoritos" (48 px, `aria-pressed`).
+- [x] `pages/favorites/` + ruta `favoritos` (lazy): pide a la API **una ficha por id, en serie** (Kitsu limita a 3 req/s), reutiliza lo ya cargado al volver a entrar (`ionViewWillEnter`), guard de concurrencia, y estados **cargando / vacío / error con Reintentar / lista con aviso de fallos parciales**. Quitar un favorito lo saca de la lista y de Preferences en el mismo gesto.
+- [x] **Correcciones del `revisor-rubrica` atendidas**: cabecera coherente mientras se reinicia la búsqueda (`reiniciando` + `«Buscando…»`, ya no muestra la consulta nueva con las cifras viejas) · `portadaRota` y `anime` se reinician al cambiar de id · `reintentar()` de la ficha no pide sin id · reversión puntual de favoritos (no pisa otro toggle) · guard en `cargar()` de favoritos · `FalloApiTipo` gana **`desconocido`** (un error de programación ya no se disfraza de "sin conexión") · el 404 de `getAnimeById` se levanta como `HttpErrorResponse` (una sola vía de clasificación) · `.aviso`/`.reintentar-inline` movidos a `global.scss` (sin duplicar estilos entre home y favoritos) · `total` de favoritos sale del servicio.
+- [x] **23 tests nuevos** (59 en total, 7 archivos): `favorites.service.spec.ts` (9), `favorites.page.spec.ts` (5), `lib/fallos.spec.ts` (5), +2 en home (estrella y coherencia del reinicio) y +1 en detail (favorito).
+
+**Lo que falta (fase H, MiMo)** → PLAN.md §13.3
+1. `verificador-build` + `revisor-rubrica` sobre el estado final (R1–R7).
+2. **APK por terminal** (`npm run build` → `npx cap sync android` → `android\gradlew.bat assembleDebug`). El APK actual es **anterior** a R3–R6.
+3. `auditor-muerto` + cerrar la remediación de `AUDITORIA-DEPS.md`.
+4. **`README.md` está desactualizado** (es tu zona, no lo toqué): dice R4/R5/R6 ⏳, "9/9 tests" y `git clone …/tu-usuario`. Lo real: **R1–R7 ✅ · 59 tests en 7 archivos** · estructura con `pages/detail`, `pages/favorites`, `components/panel-estado`, `components/anime-card`, `lib/`, `services/favorites.service.ts` · remote `JimSul16/API-Explorer` · el offset avanza **por lo recibido**, no `+= 20`. Faltan capturas/video.
+5. §11 de `PLAN.md` ya está al día; commit + push final.
+
+**Decisiones a respetar**
+- Favoritos = **ids** en Preferences; las fichas se piden a la API (no se guardan objetos).
+- Un único `AnimeService` para HTTP; un único `FavoritesService` para persistencia.
+- Textos de fallo en `lib/fallos.ts`; el tipo `desconocido` es para errores propios, **no** para red.
+- La tarjeta sigue siendo presentacional (`favorito`/`favoritoClick`): no le inyectes servicios.
+
+**BUILD**
+```
+npm run build                          → verde, 0 errores, 0 warnings (5 s)
+npx tsc -p tsconfig.app.json --noEmit  → 0 errores
+npx tsc -p tsconfig.spec.json --noEmit → 0 errores
+npm run lint                           → All files pass linting
+npm test -- --watch=false              → 7 archivos · 59/59 tests
+```
+`verificador-build` (independiente, antes de los últimos ajustes): **BUILD: verde** 0/0 con las 12 invariantes de R6 OK.
+
+**Rúbrica (`revisor-rubrica`, sobre el estado previo al commit): ≈ 89/100** — R1 19.5 · R2 24 · R3 14 · R4 9.5 · R5 10 · R6 9 · README 3. Su "bloqueante" era que R6 aún no estaba commiteado (queda resuelto con este commit) y sus hallazgos medios ya están corregidos; el punto flojo restante es el **README** (ítem de 10).
+
+**Errores conocidos:** ninguno funcional. `complete()` del infinite scroll se llama dentro de `gen === generacion` **a propósito**: cerrar el spinner de una generación vieja apagaría el de la carga nueva.
 
 ---
 

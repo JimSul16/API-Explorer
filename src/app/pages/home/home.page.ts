@@ -10,12 +10,14 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AnimeCardComponent } from '../../components/anime-card/anime-card.component';
 import { PanelEstadoComponent } from '../../components/panel-estado/panel-estado.component';
 import { aFallo, etiquetaDeFallo, mensajeDeFallo } from '../../lib/fallos';
 import { Anime, FalloApi } from '../../models/anime.model';
 import { AnimeService } from '../../services/anime.service';
+import { FavoritesService } from '../../services/favorites.service';
 
 type EstadoLista = 'cargando' | 'error' | 'vacio' | 'lista';
 
@@ -39,10 +41,12 @@ type EventoBusqueda = CustomEvent<{ value?: string | null }>;
     IonInfiniteScrollContent,
     AnimeCardComponent,
     PanelEstadoComponent,
+    RouterLink,
   ],
 })
 export class HomePage implements OnInit {
   private readonly svc = inject(AnimeService);
+  private readonly favoritos = inject(FavoritesService);
 
   /** Lista acumulada: se concatena, nunca se reemplaza al paginar. */
   readonly items = signal<Anime[]>([]);
@@ -73,9 +77,14 @@ export class HomePage implements OnInit {
   private generacion = 0;
   /** Petición en vuelo: `reiniciar()` la espera para no dejar mudo el scroll. */
   private enVuelo: Promise<void> | null = null;
+  /** Entre pedir el reinicio y vaciar la lista: la cabecera no debe mentir. */
+  private readonly reiniciando = signal(false);
 
   readonly buscando = computed(() => this.query().length > 0);
   readonly totalTexto = computed(() => this.total().toLocaleString('es-EC'));
+
+  /** Favoritos en un `Set` para que la lista reaccione al tocar una estrella (R6). */
+  protected readonly idsFavoritos = computed(() => new Set(this.favoritos.ids()));
 
   /** Causa del fallo en lenguaje humano (la del panel y la del aviso inline). */
   readonly mensajeFallo = computed(() => {
@@ -88,6 +97,11 @@ export class HomePage implements OnInit {
 
   /** Texto de cabecera que nunca contradice al estado visible. */
   readonly resumen = computed(() => {
+    // Mientras se prepara el reinicio aún hay títulos viejos en pantalla: no se
+    // muestran sus cifras junto a la consulta nueva.
+    if (this.reiniciando()) {
+      return this.buscando() ? `Buscando «${this.query()}»…` : 'Volviendo al catálogo completo…';
+    }
     const cargados = this.items().length;
     if (cargados > 0) {
       if (this.buscando()) {
@@ -160,6 +174,7 @@ export class HomePage implements OnInit {
     const texto = query.trim();
     const gen = ++this.generacion;
     this.query.set(texto);
+    this.reiniciando.set(true);
 
     const enVuelo = this.enVuelo;
     if (enVuelo) {
@@ -177,6 +192,7 @@ export class HomePage implements OnInit {
     this.hasMore.set(true);
     this.finSinProgreso.set(false);
     this.fallo.set(null);
+    this.reiniciando.set(false);
 
     void this.contenido?.scrollToTop().catch(() => undefined);
     await this.cargar();
@@ -259,5 +275,10 @@ export class HomePage implements OnInit {
       return;
     }
     await this.reiniciar();
+  }
+
+  /** Estrella de la tarjeta (R6): delega en el servicio, que persiste los ids. */
+  async alternarFavorito(id: string): Promise<void> {
+    await this.favoritos.toggle(id);
   }
 }

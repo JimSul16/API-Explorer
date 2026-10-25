@@ -9,7 +9,10 @@ export const routes: Routes = [
     path: 'anime/:id',
     loadComponent: () => import('./pages/detail/detail.page').then((m) => m.DetailPage),
   },
-  // R6 ('favoritos') llega en G2
+  {
+    path: 'favoritos',
+    loadComponent: () => import('./pages/favorites/favorites.page').then((m) => m.FavoritesPage),
+  },
   {
     path: '',
     redirectTo: 'home',
