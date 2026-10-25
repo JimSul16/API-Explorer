@@ -490,13 +490,14 @@ export class FavoritesService {
 | **P — Pulido R1+R2+R7** | 🟩 `deepseek-codigo` | `verificador-build` + `revisor-rubrica` | `pruebas-frontend-esfot`, `refactor-seguro` | ✅ **Cerrada 22/10** — 5 puntos del revisor + 5 hallazgos más de las pasadas 2.ª/3.ª: offset por lo recibido, pausa del scroll tras fallo (sin bucle), copy del error, `FalloApi` tipado (red/429/5xx/4xx), URL desde `environment`, freno si la API repite página, dedupe intra-página · **18/18 tests** · `BUILD: verde` 0 warnings · **75/75** · `REGISTRO-DEEPSEEK.md` |
 | F — Commit + README parcial + demo | 🟦 `mimo-infra` | `verificador-build` | `pruebas-frontend-esfot` | ✅ **Cerrada 22/10 20:32** — build/tsc/lint/test verdes · budget SCSS 3 kB/6 kB · `revisor-rubrica` **74/75** (antes del pulido) · `ionic.config.json` identidad + README evidencias · commits `b7116f2` + `26d550a` + `fase-F` |
 
-**Etapa posterior (asignada, fuera del plan):**
+**Plan de cierre §13 (activo desde 25/10):**
 
 | Fase | Requisito | Agente | Estado |
 |---|---|---|---|
-| E — Búsqueda | R3 | 🟩 `deepseek-codigo` | 📌 fuera de alcance |
-| G — Detalle + errores + favoritos | R4, R5, R6 | 🟩 `deepseek-codigo` | 📌 fuera de alcance |
-| H — **APK por terminal** + auditoría + GitHub | Evidencia | 🟦 `mimo-infra` | 📌 fuera de alcance |
+| **E — Búsqueda con reinicio** | **R3** | 🟩 `deepseek-codigo` | ✅ **Cerrada 25/10** — `ion-searchbar [debounce]="400"` + `query` en estado + `reiniciar()` limpia items/ids/offset/hasMore/fallo/total + **token de generación** que descarta respuestas y fallos viejos + `enVuelo` esperado antes de vaciar (no deja mudo el infinite scroll) + vacío ≠ error + `PanelEstadoComponent` compartido (home/detalle) + `close-circle` registrado · **25/25 tests** (7 nuevos de R3) · `BUILD: verde` 0 errores / 0 warnings · commit `fase-E-R3` |
+| G1 — Detalle + estados | R4, R5 | 🟩 `deepseek-codigo` | ⏳ siguiente (turno de DeepSeek) |
+| G2 — Favoritos | R6 | 🟩 `deepseek-codigo` | ⏳ tras G1 |
+| H — Verificación + **APK** + auditoría + README + push | Evidencia | 🟦 `mimo-infra` | ⏳ en espera de la señal `FASE-G: commiteado` |
 
 ---
 

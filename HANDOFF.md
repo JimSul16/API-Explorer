@@ -12,13 +12,13 @@
 | **Alcance del plan** | **R1 + R2 + estructura R7** (fases A–D + F); R3–R6 y APK = etapa posterior (PLAN.md §4.2) |
 | **Modo** | **Paralelo** (PLAN.md §3.4): 🟦 MiMo = raíz/config · 🟩 DeepSeek = `src/**` |
 | **SCAFFOLD** | ✅ **listo** (22/10 20:12) |
-| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ · **P ✅ pulido R1+R2+R7** → alcance original CERRADO · **ahora: plan activo = §13 (R3–R6 + cierre)** |
-| Orden | **PASO 1** 🟩 DeepSeek: **E (R3)** → **G (R4 + R5 + R6)** · **PASO 2** 🟦 MiMo: **H (verificación + APK + auditoría + README + push)** |
-| Responsable | 🟩 DeepSeek (`deepseek-codigo`) arranca **E** · 🟦 MiMo en espera hasta que HANDOFF diga `FASE-G: commiteado` |
-| **BUILD** | ✅ **verde, 0 warnings** — verificado **25/10**: `npm run build` (0 errores/0 warnings) · `tsc` app+spec 0 · `npm run lint` pass · `npm test` **18/18** · `git status` limpio |
-| **Rúbrica (hoy)** | `revisor-rubrica` → **75/75** evaluables: R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10. Meta con R3–R6 + README: **100/100** |
-| Commits (8) | `1269883` fase-B · `1fb11ff` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido · `934c977` REGISTRO-MIMO · `7232eb2` pulido-revisor + REGISTRO-DEEPSEEK · remote `origin` = GitHub `JimSul16/API-Explorer` |
-| **🚦 Señal para DeepSeek** | 🟢 **`LISTO PARA R3`** (25/10) — ábrelo con el agente `deepseek-codigo` + skill `ui-ionic-design` |
+| Fase actual | A ✅ · B ✅ · C ✅ · D ✅ · F ✅ · P ✅ · **E ✅ (R3 cerrada 25/10)** · G1 ⏳ · G2 ⏳ · H ⏳ |
+| Orden | **PASO 1** 🟩 DeepSeek: **E (R3) ✅** → **G1 (R4 + R5)** → **G2 (R6)** · **PASO 2** 🟦 MiMo: **H (verificación + APK + auditoría + README + push)** |
+| Responsable | 🟩 DeepSeek (`deepseek-codigo`) sigue con **G1** · 🟦 MiMo en espera hasta que HANDOFF diga `FASE-G: commiteado` |
+| **BUILD** | ✅ **verde, 0 warnings** — verificado 25/10 tras R3: `npm run build` (0 errores/0 warnings) · `tsc` app+spec 0 · `npm run lint` pass · `npm test` **25/25** |
+| **Rúbrica (hoy)** | R1 20/20 · R2 25/25 · R7 20/20 · estados 10/10 · **R3 15/15** → meta restante: R4 (10) + R5 (10) + R6 (10) + README/GitHub (10) |
+| Commits (10) | `1269883` fase-B · `1fb11ff` fase-C-D · `26d550a` limpieza · `0f7bfe8` fase-F · `8b40df9` evidencia-APK · `9c5d1f9` README · `059c4c0` pulido · `934c977` REGISTRO-MIMO · `7232eb2` pulido-revisor + REGISTRO-DEEPSEEK · `4b158c2` plan §13 · `fase-E-R3` (R3) · remote `origin` = GitHub `JimSul16/API-Explorer` |
+| **🚦 Señal para DeepSeek** | 🟢 **`R3 CERRADA`** (commit `fase-E-R3`) — sigue con **G1** (R4 detalle + R5 estados), mismo agente `deepseek-codigo` + skill `ui-ionic-design` |
 | **🚦 Señal para MiMo** | 🔴 en espera — arranca cuando el bloque de DeepSeek diga **`FASE-G: commiteado`** |
 | **📘 Registros de continuidad** | `REGISTRO-MIMO.md` (🟦 MiMo: todo lo hecho + comandos + lo que falta) · `REGISTRO-DEEPSEEK.md` (🟩 DeepSeek: código e interfaz) → base del **nuevo plan en nueva sesión** (R3–R6) |
 | Archivos tocados | raíz + configs (MiMo) · `src/**` completo (DeepSeek) |
@@ -212,6 +212,51 @@ npm test -- --watch=false       → 3 archivos · 18/18
 
 **BUILD:** ✅ **verde, 18/18 tests** (verificado 25/10).
 **Errores conocidos:** ninguno funcional. Pendientes: README desactualizado · APK a regenerar · 5 vulnerabilidades del starter · `README.md` sin capturas/video.
+
+---
+
+## Handoff #6 — de 🟩 DeepSeek a 🟩 DeepSeek (E cerrada) ✅ `FASE-E: commiteado`
+
+**Fase completada:** **E — R3 búsqueda con reinicio total** (plan §13.2).
+
+**Qué quedó hecho (zona DeepSeek: `src/**`)**
+- [x] `home.page.html` → `ion-searchbar [debounce]="400"` (Kitsu 3 req/s), `inputmode="search"`, `enterkeyhint="search"`, `showClearButton="always"` + chip con la consulta activa y botón `close-circle` para volver al catálogo.
+- [x] `home.page.ts` → `query` en **signal**; `buscando` **derivado**, no un booleano suelto.
+- [x] `reiniciar(query)` = **reinicio total**: `ids.clear()` · `offset = 0` · `items = []` · `total = 0` · `hasMore = true` · `finSinProgreso = false` · `fallo = null` → `cargar()`. `scrollToTop()` tras limpiar.
+- [x] **Trampa del scroll resuelta** (la del Handoff #4): `reiniciar()` guarda `enVuelo` (promise de la página en curso) y **la espera** antes de vaciar; así Ionic no se queda con `isLoading=false` y `didFire=true` (scroll mudo).
+- [x] **Token de generación** (`private generacion`): +1 en cada `reiniciar()`; la respuesta, el `catch` y el `finally` de una generación vieja se descartan → la búsqueda anterior **no pisa** ni ensucia la nueva.
+- [x] `pedirPagina(gen)` = petición + aplicación + `cargando=false` + `complete()` **en la misma continuación** (nada de `cargando` desfasado de la lista).
+- [x] Vacío ≠ error en búsqueda: panel propio ("Sin resultados para «x»") con acción **"Ver catálogo completo"**; el error de red conserva "Reintentar".
+- [x] **Nuevo `components/panel-estado/`** (icono/título/mensaje/acción/rol + `output`) → los 3 estados a pantalla completa se ven igual en home y se reutilizará en detalle (R5). Evita duplicar estilos y mantiene el budget de `home.page.scss`.
+- [x] `.cabecera/.marca/.pulso/.fuente` movidos de `home.page.scss` a `src/global.scss` (chrome compartido por las 3 páginas).
+- [x] `main.ts` → `addIcons({ closeCircle })` (si no, el chip sale sin icono).
+- [x] **7 tests nuevos de R3** (`home.page.spec.ts`): reinicio de items/offset/ids · respuesta vieja de scroll descartada y scroll vivo · solo gana la última búsqueda · vacío ≠ error en búsqueda · paginar tras buscar sin mezclar · `debounce === 400` y `trim()` del handler · `limpiar()` vuelve al catálogo. Total **25/25**.
+
+**⚠️ Detalle de tests (para no tropezar otra vez)**
+- `fixture.whenStable()` avanza **un solo microtask**: la carga de `ngOnInit` seguía "en vuelo" para el componente y `reiniciar()` la esperaba antes de pedir → `expectOne` no encontraba nada. Se añadió el helper **`asentar()`** (`await new Promise(r => setTimeout(r))`) que drena los microtasks de verdad. Usadlo en los specs de detalle/favoritos cuando la carga inicial no tenga promesa a mano.
+
+**Decisiones a respetar**
+- Todo el HTTP sigue en `AnimeService`; la búsqueda **no** añadió servicio nuevo (usa `filter[text]`, ya existente).
+- `[disabled]` del infinite scroll sigue incluyendo `error()` (anti-bucle) y cualquier reintento limpia `fallo` antes de pedir.
+- El offset avanza por lo recibido (`res.offset + res.items.length`), nunca por `pageSize` fijo.
+- El chip y el vacío comparten `query()`; no guardéis una segunda copia del texto.
+
+**Siguiente (mismo turno, G1 → G2)** → PLAN.md §13.2
+1. **G1 (R4 + R5)**: ruta lazy `anime/:id`, `getAnimeById()` en `AnimeService` reutilizando `toAnime`, `pages/detail/` con `app-panel-estado` para loading/404/error+Reintentar e `ion-back-button`. Commit `fase-G-R4R5`.
+2. **G2 (R6)**: `FavoritesService` (Preferences, **solo ids**, signal) + ★ en `anime-card`/detalle + página `favoritos` + ruta + iconos en `main.ts`. Commit `fase-G-R6`.
+3. Al cerrar G2: `revisor-rubrica`, escribir **`FASE-G: commiteado (<hash>)`** en la fila *Señal para MiMo* y push.
+
+**BUILD**
+```
+npm run build                          → verde, 0 errores, 0 warnings (5 s)
+npx tsc -p tsconfig.app.json --noEmit  → 0 errores
+npx tsc -p tsconfig.spec.json --noEmit → 0 errores
+npm run lint                           → All files pass linting
+npm test -- --watch=false              → 3 archivos · 25/25 tests
+```
+`verificador-build` (independiente): **BUILD: verde**, 0 errores / 0 warnings, 7/7 invariantes de R3 OK.
+
+**Errores conocidos:** ninguno. Aviso: `android/app/src/main/res/values/{styles.xml,colors.xml}` aparecen tocados en `git status` — **zona MiMo**, no los toqué ni los commiteo.
 
 ---
 

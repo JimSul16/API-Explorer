@@ -1,21 +1,25 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import {
-  IonButton,
   IonContent,
   IonHeader,
   IonIcon,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
+  IonSearchbar,
   IonSkeletonText,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { AnimeCardComponent } from '../../components/anime-card/anime-card.component';
+import { PanelEstadoComponent } from '../../components/panel-estado/panel-estado.component';
 import { Anime, FalloApi } from '../../models/anime.model';
 import { AnimeService } from '../../services/anime.service';
 
 type EstadoLista = 'cargando' | 'error' | 'vacio' | 'lista';
+
+/** Lo que entrega `ionInput` de `ion-searchbar`. */
+type EventoBusqueda = CustomEvent<{ value?: string | null }>;
 
 @Component({
   selector: 'app-home',
@@ -27,12 +31,13 @@ type EstadoLista = 'cargando' | 'error' | 'vacio' | 'lista';
     IonToolbar,
     IonTitle,
     IonContent,
-    IonButton,
     IonIcon,
+    IonSearchbar,
     IonSkeletonText,
     IonInfiniteScroll,
     IonInfiniteScrollContent,
     AnimeCardComponent,
+    PanelEstadoComponent,
   ],
 })
 export class HomePage implements OnInit {
@@ -45,6 +50,8 @@ export class HomePage implements OnInit {
   readonly hasMore = signal(true);
   /** El fin no vino de `meta.count` sino de una página sin títulos nuevos. */
   readonly finSinProgreso = signal(false);
+  /** Texto activo de la búsqueda (R3). Vacío = catálogo completo. */
+  readonly query = signal('');
 
   /**
    * Último fallo clasificado. Su presencia **pausa el scroll automático**
@@ -55,11 +62,18 @@ export class HomePage implements OnInit {
   readonly error = computed(() => this.fallo() !== null);
 
   @ViewChild(IonInfiniteScroll) private infinite?: IonInfiniteScroll;
+  @ViewChild(IonSearchbar) private barra?: IonSearchbar;
+  @ViewChild(IonContent) private contenido?: IonContent;
 
   /** Ids ya mostrados: la API puede solapar páginas y aquí se corta el duplicado. */
   private readonly ids = new Set<string>();
   private offset = 0;
+  /** Token de generación: al cambiar la búsqueda, las respuestas viejas se descartan. */
+  private generacion = 0;
+  /** Petición en vuelo: `reiniciar()` la espera para no dejar mudo el scroll. */
+  private enVuelo: Promise<void> | null = null;
 
+  readonly buscando = computed(() => this.query().length > 0);
   readonly totalTexto = computed(() => this.total().toLocaleString('es-EC'));
 
   /** Causa del fallo en lenguaje humano (la del panel y la del aviso inline). */
@@ -98,18 +112,24 @@ export class HomePage implements OnInit {
 
   /** Texto de cabecera que nunca contradice al estado visible. */
   readonly resumen = computed(() => {
-    if (this.items().length > 0) {
+    const cargados = this.items().length;
+    if (cargados > 0) {
+      if (this.buscando()) {
+        return this.total() > 0
+          ? `«${this.query()}» · ${this.totalTexto()} coincidencias · ${cargados} cargados`
+          : `«${this.query()}» · ${cargados} cargados`;
+      }
       return this.total() > 0
-        ? `${this.totalTexto()} títulos · cargados ${this.items().length}`
-        : `Cargados ${this.items().length} títulos`;
+        ? `${this.totalTexto()} títulos · cargados ${cargados}`
+        : `Cargados ${cargados} títulos`;
     }
     if (this.estado() === 'error') {
       return this.etiquetaFallo();
     }
     if (this.estado() === 'vacio') {
-      return 'La API no devolvió títulos';
+      return this.buscando() ? `Sin coincidencias para «${this.query()}»` : 'La API no devolvió títulos';
     }
-    return 'Conectando con Kitsu…';
+    return this.buscando() ? `Buscando «${this.query()}»…` : 'Conectando con Kitsu…';
   });
 
   readonly estado = computed<EstadoLista>(() => {
@@ -125,12 +145,55 @@ export class HomePage implements OnInit {
     return 'lista';
   });
 
+  readonly tituloVacio = computed(() =>
+    this.buscando() ? `Sin resultados para «${this.query()}»` : 'La API no devolvió títulos',
+  );
+
+  readonly mensajeVacio = computed(() =>
+    this.buscando()
+      ? 'Kitsu no tiene títulos que coincidan con ese texto. Prueba con otro nombre o vuelve al catálogo completo.'
+      : 'La respuesta vino sin datos. Vuelve a pedir el catálogo.',
+  );
+
+  readonly accionVacio = computed(() => (this.buscando() ? 'Ver catálogo completo' : 'Reintentar'));
+
   ngOnInit(): void {
     void this.cargar();
   }
 
-  /** Vuelve al inicio del catálogo (estado vacío o error de la primera página). */
-  async reiniciar(): Promise<void> {
+  /** `ionInput` del searchbar (ya debounced 400 ms por Ionic). */
+  buscar(evento: EventoBusqueda): void {
+    void this.reiniciar(evento.detail.value ?? '');
+  }
+
+  /** Vacía el buscador y vuelve al catálogo completo. */
+  async limpiar(): Promise<void> {
+    if (this.barra) {
+      this.barra.value = '';
+    }
+    await this.reiniciar('');
+  }
+
+  /**
+   * Reinicio total (R3): lista, ids, offset, fin y fallo vuelven a cero y se
+   * recarga con la nueva consulta. Antes espera la petición en vuelo: vaciar
+   * la lista con una carga de scroll a medias deja el infinite scroll mudo
+   * (Ionic pone `isLoading=false` sin resetear `didFire`).
+   */
+  async reiniciar(query = this.query()): Promise<void> {
+    const texto = query.trim();
+    const gen = ++this.generacion;
+    this.query.set(texto);
+
+    const enVuelo = this.enVuelo;
+    if (enVuelo) {
+      await enVuelo;
+    }
+    if (gen !== this.generacion) {
+      return; // llegó otra búsqueda más nueva mientras esperábamos
+    }
+
+    this.cargando.set(false); // la petición que esperábamos ya cerró su ciclo
     this.ids.clear();
     this.offset = 0;
     this.items.set([]);
@@ -138,6 +201,8 @@ export class HomePage implements OnInit {
     this.hasMore.set(true);
     this.finSinProgreso.set(false);
     this.fallo.set(null);
+
+    void this.contenido?.scrollToTop().catch(() => undefined);
     await this.cargar();
   }
 
@@ -151,11 +216,31 @@ export class HomePage implements OnInit {
       return;
     }
 
+    const gen = this.generacion;
     this.cargando.set(true);
     this.fallo.set(null);
 
+    const peticion = this.pedirPagina(gen);
+    this.enVuelo = peticion;
     try {
-      const res = await firstValueFrom(this.svc.getAnime('', this.offset));
+      await peticion;
+    } finally {
+      if (this.enVuelo === peticion) {
+        this.enVuelo = null;
+      }
+    }
+  }
+
+  /**
+   * Petición + aplicación del resultado + cierre del spinner, todo en la misma
+   * continuación de la respuesta: `cargando` nunca queda desfasado de la lista.
+   */
+  private async pedirPagina(gen: number): Promise<void> {
+    try {
+      const res = await firstValueFrom(this.svc.getAnime(this.query(), this.offset));
+      if (gen !== this.generacion) {
+        return; // respuesta vieja: no pisa la búsqueda nueva
+      }
 
       // Deduplica también dentro de la misma página: `track anime.id` del @for
       // rompería (NG0955) si la API repitiera un id en una sola respuesta.
@@ -178,12 +263,26 @@ export class HomePage implements OnInit {
       this.finSinProgreso.set(sinProgreso);
       this.hasMore.set(sinProgreso ? false : res.hasMore);
     } catch (motivo: unknown) {
+      if (gen !== this.generacion) {
+        return; // el fallo de una búsqueda anterior no ensucia la actual
+      }
       // El offset no avanza: el reintento pide exactamente la misma página.
       this.fallo.set(this.aFallo(motivo));
     } finally {
-      this.cargando.set(false);
-      this.infinite?.complete();
+      if (gen === this.generacion) {
+        this.cargando.set(false);
+        this.infinite?.complete();
+      }
     }
+  }
+
+  /** Acción del estado vacío: limpiar la búsqueda o reintentar el catálogo. */
+  async accionVacioClick(): Promise<void> {
+    if (this.buscando()) {
+      await this.limpiar();
+      return;
+    }
+    await this.reiniciar();
   }
 
   /** Normaliza lo lanzado por el servicio; un error inesperado no deja el panel vacío. */

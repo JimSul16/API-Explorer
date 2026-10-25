@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { IonInfiniteScroll } from '@ionic/angular';
+import { IonInfiniteScroll, IonSearchbar } from '@ionic/angular';
 
 import { environment } from '../../../environments/environment';
 import { HomePage } from './home.page';
@@ -50,6 +50,15 @@ describe('HomePage', () => {
       .nativeElement as HTMLIonInfiniteScrollElement;
   }
 
+  /**
+   * Deja correr por completo la carga que dispara `ngOnInit` (que no devuelve
+   * promesa). `whenStable()` solo avanzaba un microtask: la petición quedaba
+   * "en vuelo" para el componente y `reiniciar()` la esperaba antes de pedir.
+   */
+  async function asentar(): Promise<void> {
+    await new Promise<void>((resolver) => setTimeout(resolver));
+  }
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HomePage],
@@ -72,7 +81,7 @@ describe('HomePage', () => {
     expect(req.request.params.get('page[offset]')).toBe('0');
 
     req.flush(pagina([1, 2], 22515));
-    await fixture.whenStable();
+    await asentar();
 
     expect(lista.items().length).toBe(2);
     expect(lista.items()[0].titulo).toBe('Anime 1');
@@ -84,7 +93,7 @@ describe('HomePage', () => {
 
   it('concatena la página siguiente sin duplicar ids', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 40));
-    await fixture.whenStable();
+    await asentar();
 
     const siguiente = lista.cargar();
     const req = http.expectOne((r) => r.params.get('page[offset]') === '2');
@@ -97,14 +106,14 @@ describe('HomePage', () => {
 
   it('deduplica también dentro de la misma página (protege el track del @for)', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 1, 2], 100));
-    await fixture.whenStable();
+    await asentar();
 
     expect(lista.items().map((a) => a.id)).toEqual(['1', '2']);
   });
 
   it('un error no pierde la lista, desbloquea la UI y reintenta el mismo offset', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 60));
-    await fixture.whenStable();
+    await asentar();
 
     const fallo = lista.cargar();
     http.expectOne((r) => r.params.get('page[offset]') === '2').flush('caído', {
@@ -128,7 +137,7 @@ describe('HomePage', () => {
 
   it('corta la paginación y deshabilita el scroll al alcanzar meta.count', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 20));
-    await fixture.whenStable();
+    await asentar();
     fixture.detectChanges();
 
     expect(lista.hasMore()).toBe(false);
@@ -138,7 +147,7 @@ describe('HomePage', () => {
 
   it('distingue una respuesta vacía de un error de red', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([], 0));
-    await fixture.whenStable();
+    await asentar();
 
     expect(lista.estado()).toBe('vacio');
     expect(lista.error()).toBe(false);
@@ -146,7 +155,7 @@ describe('HomePage', () => {
 
   it('una página vacía corta la paginación en vez de repetir peticiones', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
-    await fixture.whenStable();
+    await asentar();
 
     const vacia = lista.cargar();
     http.expectOne((r) => r.params.get('page[offset]') === '2').flush(pagina([], 100));
@@ -158,7 +167,7 @@ describe('HomePage', () => {
 
   it('no lanza dos peticiones simultáneas', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
-    await fixture.whenStable();
+    await asentar();
 
     const primera = lista.cargar();
     const segunda = lista.cargar(); // el guard la descarta
@@ -173,7 +182,7 @@ describe('HomePage', () => {
 
   it('completa el infinite scroll aunque la página falle', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1], 100));
-    await fixture.whenStable();
+    await asentar();
 
     let completados = 0;
     (lista as unknown as { infinite?: unknown }).infinite = {
@@ -195,7 +204,7 @@ describe('HomePage', () => {
   it('avanza el offset con lo realmente recibido: una página corta no salta títulos', async () => {
     // Página corta que NO es el final: la API puede devolver menos de 20.
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2, 3], 100));
-    await fixture.whenStable();
+    await asentar();
     expect(lista.hasMore()).toBe(true);
 
     const siguiente = lista.cargar();
@@ -209,7 +218,7 @@ describe('HomePage', () => {
 
   it('se detiene si la API repite una página (sin progreso real)', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
-    await fixture.whenStable();
+    await asentar();
 
     const repetida = lista.cargar();
     http.expectOne((r) => r.params.get('page[offset]') === '2').flush(pagina([1, 2], 100));
@@ -222,7 +231,7 @@ describe('HomePage', () => {
 
   it('pausa el scroll tras un error (sin bucle) y lo rehabilita al reintentar', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
-    await fixture.whenStable();
+    await asentar();
     fixture.detectChanges();
     expect(scroll().disabled).toBe(false);
 
@@ -251,7 +260,7 @@ describe('HomePage', () => {
 
   it('explica distinto una red caída que un error del servidor', async () => {
     http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
-    await fixture.whenStable();
+    await asentar();
 
     const sinRed = lista.cargar();
     http
@@ -279,5 +288,144 @@ describe('HomePage', () => {
 
     expect(lista.fallo()?.tipo).toBe('limite');
     expect(lista.mensajeFallo()).toContain('Demasiadas peticiones');
+  });
+
+  // ---- R3: búsqueda con reinicio total y respuestas fuera de orden ----
+
+  it('al buscar reinicia items, offset e ids (no mezcla catálogo y resultados)', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
+    await asentar();
+
+    const busqueda = lista.reiniciar('naruto');
+    const req = http.expectOne((r) => r.params.get('filter[text]') === 'naruto');
+    expect(req.request.params.get('page[offset]')).toBe('0');
+    // El id 2 ya estaba en el catálogo: solo aparece si el Set se limpió al reiniciar.
+    req.flush(pagina([2, 3], 2));
+    await busqueda;
+
+    expect(lista.query()).toBe('naruto');
+    expect(lista.buscando()).toBe(true);
+    expect(lista.items().map((a) => a.id)).toEqual(['2', '3']);
+    expect(lista.total()).toBe(2);
+    expect(lista.hasMore()).toBe(false);
+    expect(lista.estado()).toBe('lista');
+  });
+
+  it('descarta la respuesta vieja de una carga en vuelo al buscar (y deja el scroll vivo)', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
+    await asentar();
+
+    const cargaScroll = lista.cargar(); // petición de scroll (generación anterior) sin responder
+    const busqueda = lista.reiniciar('naruto'); // espera a que esa petición cierre
+
+    http
+      .expectOne((r) => r.params.get('page[offset]') === '2')
+      .flush('caído', { status: 503, statusText: 'Service Unavailable' });
+    await cargaScroll; // la búsqueda ya lanzó su propia petición
+    await asentar();
+
+    const nueva = http.expectOne((r) => r.params.get('filter[text]') === 'naruto');
+    expect(nueva.request.params.get('page[offset]')).toBe('0');
+    nueva.flush(pagina([7], 1));
+    await busqueda;
+    fixture.detectChanges();
+
+    // El 503 de la generación anterior no ensucia la búsqueda nueva.
+    expect(lista.error()).toBe(false);
+    expect(lista.fallo()).toBeNull();
+    expect(lista.items().map((a) => a.id)).toEqual(['7']);
+    expect(lista.cargando()).toBe(false);
+    // La carga vieja no vació la lista con el spinner activo: el scroll sigue utilizable.
+    expect(lista.hasMore()).toBe(false);
+    expect(scroll().disabled).toBe(true); // fin real por meta.count = 1
+  });
+
+  it('solo la última búsqueda pinta resultados', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1], 100));
+    await asentar();
+
+    const primera = lista.reiniciar('naruto');
+    const segunda = lista.reiniciar('bleach'); // llega mientras naruto está en vuelo
+
+    http.expectOne((r) => r.params.get('filter[text]') === 'naruto').flush(pagina([1, 2], 5));
+    await primera;
+    await asentar();
+
+    const bleach = http.expectOne((r) => r.params.get('filter[text]') === 'bleach');
+    bleach.flush(pagina([9], 1));
+    await segunda;
+
+    expect(lista.query()).toBe('bleach');
+    expect(lista.items().map((a) => a.id)).toEqual(['9']);
+    expect(lista.total()).toBe(1);
+  });
+
+  it('una búsqueda sin coincidencias es vacío, no error', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1], 100));
+    await asentar();
+
+    const busqueda = lista.reiniciar('zzzz');
+    http.expectOne((r) => r.params.get('filter[text]') === 'zzzz').flush(pagina([], 0));
+    await busqueda;
+
+    expect(lista.estado()).toBe('vacio');
+    expect(lista.error()).toBe(false);
+    expect(lista.tituloVacio()).toContain('zzzz');
+    expect(lista.accionVacio()).toBe('Ver catálogo completo');
+    expect(lista.resumen()).toContain('Sin coincidencias');
+  });
+
+  it('pagina después de buscar sin mezclar el catálogo anterior', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1, 2], 100));
+    await asentar();
+
+    const busqueda = lista.reiniciar('naruto');
+    http.expectOne((r) => r.params.get('filter[text]') === 'naruto').flush(pagina([7, 8], 40));
+    await busqueda;
+
+    const siguiente = lista.cargar();
+    const req = http.expectOne((r) => r.params.get('page[offset]') === '2');
+    expect(req.request.params.get('filter[text]')).toBe('naruto');
+    req.flush(pagina([9], 40));
+    await siguiente;
+
+    expect(lista.items().map((a) => a.id)).toEqual(['7', '8', '9']);
+    expect(lista.hasMore()).toBe(true);
+  });
+
+  it('el buscador usa debounce 400 y el handler recorta espacios', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1], 100));
+    await asentar();
+
+    const barra = fixture.debugElement.query(By.directive(IonSearchbar))
+      .nativeElement as HTMLIonSearchbarElement;
+    expect(barra.debounce).toBe(400);
+
+    lista.buscar(new CustomEvent('ionInput', { detail: { value: '  naruto  ' } }));
+    const req = http.expectOne((r) => r.params.get('filter[text]') === 'naruto');
+    req.flush(pagina([2], 1));
+    await asentar();
+
+    expect(lista.query()).toBe('naruto');
+    expect(lista.items().map((a) => a.id)).toEqual(['2']);
+  });
+
+  it('limpiar() vacía el buscador y vuelve al catálogo completo', async () => {
+    http.expectOne((r) => r.url === URL_KITSU).flush(pagina([1], 100));
+    await asentar();
+
+    const busqueda = lista.reiniciar('naruto');
+    http.expectOne((r) => r.params.get('filter[text]') === 'naruto').flush(pagina([2], 1));
+    await busqueda;
+
+    const limpiar = lista.limpiar();
+    const req = http.expectOne((r) => r.url === URL_KITSU && !r.params.has('filter[text]'));
+    expect(req.request.params.get('page[offset]')).toBe('0');
+    req.flush(pagina([1, 2], 100));
+    await limpiar;
+
+    expect(lista.query()).toBe('');
+    expect(lista.buscando()).toBe(false);
+    expect(lista.items().map((a) => a.id)).toEqual(['1', '2']);
   });
 });

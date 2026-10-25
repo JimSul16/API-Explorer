@@ -12,8 +12,34 @@
   <section class="intro">
     <p class="eyebrow">Catálogo JSON:API</p>
     <h2 class="lema">Datos reales,<br /><em>scroll infinito</em>.</h2>
-    <p class="cifras" aria-live="polite">{{ resumen() }}</p>
   </section>
+
+  <div class="buscador">
+    <ion-searchbar
+      [debounce]="400"
+      inputmode="search"
+      enterkeyhint="search"
+      placeholder="Buscar anime…"
+      showClearButton="always"
+      aria-label="Buscar anime por título"
+      (ionInput)="buscar($event)"
+    ></ion-searchbar>
+
+    @if (buscando()) {
+      <button
+        type="button"
+        class="chip"
+        [attr.aria-label]="'Quitar la búsqueda ' + query()"
+        (click)="limpiar()"
+      >
+        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+        <span class="chip-texto">«{{ query() }}»</span>
+        <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
+      </button>
+    }
+  </div>
+
+  <p class="cifras" aria-live="polite">{{ resumen() }}</p>
 
   @switch (estado()) {
     @case ('cargando') {
@@ -31,21 +57,24 @@
     }
 
     @case ('error') {
-      <div class="panel" role="alert">
-        <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-        <h3>No pudimos cargar el catálogo</h3>
-        <p>{{ mensajeFallo() }}</p>
-        <ion-button class="reintentar" (click)="reiniciar()">Reintentar</ion-button>
-      </div>
+      <app-panel-estado
+        rol="alert"
+        icono="cloud-offline-outline"
+        titulo="No pudimos cargar el catálogo"
+        [mensaje]="mensajeFallo()"
+        accion="Reintentar"
+        (accionClick)="reiniciar()"
+      />
     }
 
     @case ('vacio') {
-      <div class="panel">
-        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
-        <h3>Sin resultados</h3>
-        <p>La API no devolvió títulos en esta carga. Vuelve a pedir el catálogo.</p>
-        <ion-button class="reintentar" (click)="reiniciar()">Reintentar</ion-button>
-      </div>
+      <app-panel-estado
+        icono="search-outline"
+        [titulo]="tituloVacio()"
+        [mensaje]="mensajeVacio()"
+        [accion]="accionVacio()"
+        (accionClick)="accionVacioClick()"
+      />
     }
 
     @default {
@@ -59,7 +88,7 @@
         <div class="aviso" role="alert">
           <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
           <p>{{ mensajeFallo() }} Tu lista sigue aquí.</p>
-          <ion-button fill="outline" class="reintentar" (click)="cargar()">Reintentar</ion-button>
+          <button type="button" class="reintentar-inline" (click)="cargar()">Reintentar</button>
         </div>
       }
 

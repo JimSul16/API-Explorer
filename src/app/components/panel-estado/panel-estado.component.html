@@ -1,0 +1,10 @@
+<div class="panel" [attr.role]="rol()">
+  <ion-icon [name]="icono()" aria-hidden="true"></ion-icon>
+  <h3>{{ titulo() }}</h3>
+  @if (mensaje()) {
+    <p>{{ mensaje() }}</p>
+  }
+  @if (accion()) {
+    <ion-button class="accion" (click)="accionClick.emit()">{{ accion() }}</ion-button>
+  }
+</div>
