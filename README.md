@@ -110,7 +110,7 @@ graph TD
 - **Tests:** Vitest 5 + Angular — **59/59 en 7 archivos** (paginación, dedupe, guard, `finally`, vacío ≠ error, reinicio de búsqueda, detalle/404, favoritos)
 - **Tipos:** `tsc --noEmit` sobre `tsconfig.app.json` y `tsconfig.spec.json` → 0 errores
 - **Lint:** ESLint 10 + `angular-eslint` → *pass*
-- **Seguridad:** `npm audit` → **0 vulnerabilidades** (ver `AUDITORIA-DEPS.md`)
+- **Seguridad:** `npm audit` → **0 vulnerabilidades**
 - **Plataforma Android:** Gradle 8.14.3 + JDK 21, compilado **por terminal** (sin Android Studio)
 
 ### API
@@ -259,7 +259,7 @@ screenshots/                       evidencias gráficas de la entrega (5 captura
 - **Favoritos = ids, no objetos:** guardar objetos duplicaría datos que ya viven en la API; `init()` es idempotente y `toggle()` revierte **solo ese id** si la escritura falla.
 - **Presupuesto de estilos:** `home.page.scss` superaba 2 kB → budget recalibrado en `angular.json` a 3 kB (warning) / 6 kB (error) sin mutilar la UI, extrayendo los paneles de estado a un componente propio.
 - **La status bar de Android salía azul** (`#303F9F`, color por defecto de `@capacitor/android`) sobre una interfaz medianoche → se añadió `values/colors.xml` con la paleta de la app y `android:statusBarColor` en el tema nativo.
-- **5 vulnerabilidades en dependencias** (1 high) → resueltas **sin** `npm audit fix --force` (que habría *degradado* Angular): `overrides` de `vite` a `^8.3.5` y `uuid` a `^11.1.1` → **`npm audit`: 0**. Detalle en `AUDITORIA-DEPS.md`.
+- **5 vulnerabilidades en dependencias** (1 high) → resueltas **sin** `npm audit fix --force` (que habría *degradado* `@angular/build` a 22.1.9 y `@capacitor/cli` a 8.4.3): se forzaron versiones sanas con `overrides` en `package.json` — `vite` `^8.3.5` y `uuid` `^11.1.1` — y se verificó con `npm install` + `npx cap sync android` → **`npm audit`: 0 vulnerabilidades** (478 paquetes revisados, sin licencias GPL/AGPL).
 - **`ANDROID_HOME` vacío en la máquina:** el SDK se resuelve con `android/local.properties` (`sdk.dir=C\:\\Users\\...`).
 
 ---
