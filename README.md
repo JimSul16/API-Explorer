@@ -223,6 +223,8 @@ src/theme/variables.scss           paleta e identidad (medianoche + coral)
 src/global.scss                    tema oscuro + estilos compartidos
 src/main.ts                        provideHttpClient(withFetch) + addIcons + provideAppInitializer
 src/environments/environment.ts    apiUrl de Kitsu (único punto de cambio de API)
+
+screenshots/                       evidencias gráficas de la entrega (5 capturas PNG)
 ```
 
 ---
@@ -240,7 +242,8 @@ src/environments/environment.ts    apiUrl de Kitsu (único punto de cambio de AP
 | **R7** | Servicio HTTP + interfaces + componentes separados | ✅ |
 
 > **Verificación automática (25/10/2026):** `verificador-build` → **BUILD: verde**, 0 errores / 0 warnings,
-> 59/59 tests · `revisor-rubrica` → **92/100** con el único punto flojo en las **capturas/video** de este README.
+> 59/59 tests · `revisor-rubrica` → **92/100**, con el único punto flojo en las **capturas/video**… ya subsanado:
+> la evidencia gráfica de los 7 requisitos está incrustada en la sección *Evidencias* de este README.
 
 ---
 
@@ -279,32 +282,53 @@ src/environments/environment.ts    apiUrl de Kitsu (único punto de cambio de AP
 1269883 fase-B: scaffold Ionic standalone + estructura R7 + configs
 b7116f2 fase-C-D: R1 listado real de Kitsu + R2 scroll infinito robusto
 0f7bfe8 fase-F: verificación final del alcance R1+R2+R7 + docs de cierre
-8b40df9 evidencia-apk: APK debug por terminal
+8b40df9 evidencia-apk: APK debug por terminal (4,16 MB)
 9c5d1f9 docs: README profesional estilo portfolio
 059c4c0 pulido-R1R2R7 (DeepSeek): modelo/servicio/home + tests
+7232eb2 pulido-R1R2R7: correcciones de revisor + tests
 a1a423f fase-E-R3: búsqueda con reinicio total y token de generación
 417b3d1 fase-G-R4R5: detalle anime/:id con estados y reintento
 f0998a4 fase-G-R6: favoritos con Capacitor Preferences y estrella
 fc77b64 fase-G-R6: estilos compartidos en global.scss
 29b2195 fase-H-parcial: auditoría de dependencias + status bar Android
+6f8bdef fase-H: verificación final, APK 4,44 MB, npm audit 5→0 y README final
+8552884 chore: limpieza del repo para la entrega (docs internos y config de la IA fuera)
+fe97acd docs: capturas de la entrega en screenshots/
 ```
 
 - **Repositorio:** ✅ **https://github.com/JimSul16/API-Explorer** (branch `main`)
 
-### 📸 Capturas y video (huecos por rellenar en la entrega)
+### 📸 Capturas de la entrega
 
-| # | Qué se captura | Estado |
-|---|---|---|
-| 1 | Listado con infinite scrolling (varias pantallas de tarjetas) | ⬜ pendiente |
-| 2 | Búsqueda activa + estado "sin resultados" | ⬜ pendiente |
-| 3 | Skeleton de carga y panel de error con *Reintentar* | ⬜ pendiente |
-| 4 | Pantalla de detalle (`:id`) y regreso al listado | ⬜ pendiente |
-| 5 | Favoritos marcados y persistidos tras reiniciar la app | ⬜ pendiente |
-| 6 | Video corto (≤60 s) del scroll infinito + búsqueda | ⬜ pendiente |
-| 7 | APK instalado en el celular / emulador | ⬜ **APK listo** (`app-debug.apk`, 4,44 MB) — falta la foto en el dispositivo |
+> App en ejecución con **datos en vivo de Kitsu** · 27/10/2026 · tema oscuro, sin editar ninguna imagen.
 
-> **Formato sugerido:** guardar en `docs/capturas/01-listado.png` … `07-apk.png` y `docs/video.mp4`,
-> y sustituir cada ⬜ por `![](docs/capturas/01-listado.png)`.
+**1 · Listado real + infinite scrolling (R1 + R2)** — tras hacer scroll la cabecera marca
+`22.525 títulos · cargados 40` (dos páginas de 20 concatenadas, sin duplicados):
+
+![Listado con infinite scrolling: 40 títulos cargados](screenshots/01-listado-scroll.png)
+
+**2 · Búsqueda con reinicio total (R3)** — chip «Demon Slayer» con su ✕, cifras recalculadas
+(`24 coincidencias · 20 cargados`) y resultados filtrados:
+
+![Búsqueda «Demon Slayer» con chip y resultados filtrados](screenshots/02-busqueda-demon-slayer.png)
+
+**3 · "Sin resultados" ≠ "error de conexión" (R3 + R5)** — 200 con `data: []`: panel propio con la
+acción *Ver catálogo completo*, no un fallo de red:
+
+![Sin resultados para zzzzqqq con la acción Ver catálogo completo](screenshots/03-sin-resultados.png)
+
+**4 · Detalle con `:id` + favorito guardado (R4 + R6)** — ficha de *Honey and Clover* (hero, tipo,
+año, episodios, sinopsis) y el botón en estado **Guardado en favoritos**:
+
+![Detalle de Honey and Clover con el botón Guardado en favoritos](screenshots/04-detalle-favorito.png)
+
+**5 · APK instalado en el dispositivo** — icono **API Explorer** en el cajón de apps del teléfono
+(el APK de 4,44 MB compilado por terminal):
+
+![Icono API Explorer instalado en el cajón de aplicaciones](screenshots/05-apk-instalado.png)
+
+> 🕐 **Opcionales todavía no grabados** (no son obligatorios: la actividad pide *captura **o** video corto*):
+> panel de error con *Reintentar* (modo avión), skeleton de carga, página de favoritos y un video de ≤60 s.
 
 ---
 
